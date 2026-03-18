@@ -5,7 +5,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 data class SongInfo(
     val title: String,
     val artist: String,
-    val packageName: String = ""
+    val packageName: String = "",
+    val genre: String? = null
 )
 
 object SongState {

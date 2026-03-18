@@ -49,11 +49,11 @@ Detect the currently playing song reliably.
 Convert the detected song and artist into a music genre.
 
 ### Tasks
-- [ ] **[Manual Intervention Required]** Set up the AI API account (e.g., OpenAI or Gemini) and securely retrieve the API key using a developer console.
-- [ ] Integrate the AI REST API via Retrofit.
-- [ ] **[Manual Intervention Required]** Design, test, and manually refine the AI prompt to ensure accurate genre classification from the "Song - Artist" string without hallucinating.
-- [ ] Implement error handling and timeout logic for API calls.
-- [ ] Display the detected genre in the UI.
+- [x] **[Manual Intervention Required]** Set up the AI API account (e.g., OpenAI or Gemini) and securely retrieve the API key using a developer console.
+- [x] Integrate the AI REST API via Retrofit.
+- [x] **[Manual Intervention Required]** Design, test, and manually refine the AI prompt to ensure accurate genre classification from the "Song - Artist" string without hallucinating.
+- [x] Implement error handling and timeout logic for API calls.
+- [x] Display the detected genre in the UI.
 
 ---
 

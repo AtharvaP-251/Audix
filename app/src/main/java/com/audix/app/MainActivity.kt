@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,11 +35,13 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.audix.app.audio.EqEngine
+import com.audix.app.domain.GenreDetector
 import com.audix.app.state.SongState
 import com.audix.app.ui.theme.AudixTheme
 
 class MainActivity : ComponentActivity() {
     private val eqEngine = EqEngine()
+    private val genreDetector = GenreDetector()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +53,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     EqControls(
                         eqEngine = eqEngine,
+                        genreDetector = genreDetector,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -64,7 +68,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun EqControls(eqEngine: EqEngine, modifier: Modifier = Modifier) {
+fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -88,6 +92,18 @@ fun EqControls(eqEngine: EqEngine, modifier: Modifier = Modifier) {
     // Observe active song state
     val currentSong by SongState.currentSong.collectAsState()
     val isServiceConnected by SongState.isServiceConnected.collectAsState()
+
+    LaunchedEffect(currentSong) {
+        val song = currentSong
+        if (song != null && song.genre == null) {
+            val detectedGenre = genreDetector.detectGenre(song.title, song.artist)
+            if (detectedGenre != null) {
+                if (SongState.currentSong.value?.title == song.title) {
+                    SongState.currentSong.value = song.copy(genre = detectedGenre)
+                }
+            }
+        }
+    }
 
     Column(
         modifier = modifier.fillMaxSize().padding(24.dp),
@@ -131,6 +147,23 @@ fun EqControls(eqEngine: EqEngine, modifier: Modifier = Modifier) {
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.titleMedium
                 )
+                if (currentSong!!.genre != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Detected Genre: ${currentSong!!.genre}",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Detecting genre...",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
             } else {
                 Text(
                     text = "No song detected yet.\nPlay music in Spotify or YouTube Music.",
@@ -159,6 +192,6 @@ fun EqControls(eqEngine: EqEngine, modifier: Modifier = Modifier) {
 @Composable
 fun EqControlsPreview() {
     AudixTheme {
-        EqControls(EqEngine())
+        EqControls(EqEngine(), GenreDetector())
     }
 }
