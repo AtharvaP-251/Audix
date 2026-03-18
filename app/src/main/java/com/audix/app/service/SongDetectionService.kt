@@ -4,6 +4,7 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import android.content.Intent
 import com.audix.app.state.SongInfo
 import com.audix.app.state.SongState
 
@@ -76,6 +77,12 @@ class SongDetectionService : NotificationListenerService() {
                 if (current?.title != title || current?.artist != artist) {
                     Log.d(TAG, "Media Detected: $title by $artist ($packageName)")
                     SongState.currentSong.value = SongInfo(title, artist, packageName)
+                    
+                    val intent = Intent("com.audix.app.SONG_CHANGED")
+                    intent.putExtra("EXTRA_TITLE", title)
+                    intent.putExtra("EXTRA_ARTIST", artist)
+                    intent.putExtra("EXTRA_PACKAGE_NAME", packageName)
+                    sendBroadcast(intent)
                 }
             }
         }
