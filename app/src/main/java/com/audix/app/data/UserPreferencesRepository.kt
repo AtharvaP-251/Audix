@@ -3,6 +3,7 @@ package com.audix.app.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -14,7 +15,10 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "us
 class UserPreferencesRepository(private val context: Context) {
     companion object {
         val EQ_INTENSITY = floatPreferencesKey("eq_intensity")
-        val BASS_BOOST_INTENSITY = floatPreferencesKey("bass_boost_intensity")
+        val CUSTOM_TUNING_ENABLED = booleanPreferencesKey("custom_tuning_enabled")
+        val CUSTOM_BASS = floatPreferencesKey("custom_bass")
+        val CUSTOM_VOCALS = floatPreferencesKey("custom_vocals")
+        val CUSTOM_TREBLE = floatPreferencesKey("custom_treble")
     }
 
     val eqIntensityFlow: Flow<Float> = context.dataStore.data
@@ -22,9 +26,24 @@ class UserPreferencesRepository(private val context: Context) {
             preferences[EQ_INTENSITY] ?: 1.0f // Default to 100%
         }
 
-    val bassBoostFlow: Flow<Float> = context.dataStore.data
+    val customTuningEnabledFlow: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
-            preferences[BASS_BOOST_INTENSITY] ?: 0.0f // Default to 0%
+            preferences[CUSTOM_TUNING_ENABLED] ?: false
+        }
+
+    val customBassFlow: Flow<Float> = context.dataStore.data
+        .map { preferences ->
+            preferences[CUSTOM_BASS] ?: 0.0f
+        }
+
+    val customVocalsFlow: Flow<Float> = context.dataStore.data
+        .map { preferences ->
+            preferences[CUSTOM_VOCALS] ?: 0.0f
+        }
+
+    val customTrebleFlow: Flow<Float> = context.dataStore.data
+        .map { preferences ->
+            preferences[CUSTOM_TREBLE] ?: 0.0f
         }
 
     suspend fun saveEqIntensity(intensity: Float) {
@@ -33,9 +52,27 @@ class UserPreferencesRepository(private val context: Context) {
         }
     }
 
-    suspend fun saveBassBoost(intensity: Float) {
+    suspend fun saveCustomTuningEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
-            preferences[BASS_BOOST_INTENSITY] = intensity
+            preferences[CUSTOM_TUNING_ENABLED] = enabled
+        }
+    }
+
+    suspend fun saveCustomBass(value: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[CUSTOM_BASS] = value
+        }
+    }
+
+    suspend fun saveCustomVocals(value: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[CUSTOM_VOCALS] = value
+        }
+    }
+
+    suspend fun saveCustomTreble(value: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[CUSTOM_TREBLE] = value
         }
     }
 }

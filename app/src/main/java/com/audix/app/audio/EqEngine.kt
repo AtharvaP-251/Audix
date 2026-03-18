@@ -11,13 +11,31 @@ class EqEngine {
     var currentIntensity: Float = 1.0f
         set(value) {
             field = value
-            reapplyCurrentEq()
+            if (isEnabled) reapplyCurrentEq()
         }
 
-    var currentBassBoost: Float = 0.0f
+    var isCustomTuningEnabled: Boolean = false
         set(value) {
             field = value
-            reapplyCurrentEq()
+            if (isEnabled) reapplyCurrentEq()
+        }
+
+    var customBass: Float = 0.0f
+        set(value) {
+            field = value
+            if (isEnabled) reapplyCurrentEq()
+        }
+
+    var customVocals: Float = 0.0f
+        set(value) {
+            field = value
+            if (isEnabled) reapplyCurrentEq()
+        }
+
+    var customTreble: Float = 0.0f
+        set(value) {
+            field = value
+            if (isEnabled) reapplyCurrentEq()
         }
 
     private var lastAppliedPreset: EQPreset? = null
@@ -56,20 +74,63 @@ class EqEngine {
                 for (i in 0 until numBands) {
                     val bandFreq = eq.getCenterFreq(i.toShort()) / 1000 // Convert mHz to Hz
                     
-                    // Find the closest frequency in our 10-band preset list
-                    val closestFreq = preset.bands.keys.minByOrNull { Math.abs(it - bandFreq) } ?: continue
+                    // Allow calculation to continue even if preset is empty (i.e. Flat)
+                    val closestFreq = if (preset.bands.isNotEmpty()) {
+                        preset.bands.keys.minByOrNull { Math.abs(it - bandFreq) }
+                    } else null
                     
-                    val gainDb = preset.bands[closestFreq] ?: 0f
-                    // Apply intensity scaling, exaggerate curve differences (x2) to be more obvious,
-                    // and apply a +3.0dB global offset to combat Android's automatic EQ volume reduction
+                    val gainDb = if (closestFreq != null) preset.bands[closestFreq] ?: 0f else 0f
+                    
+                    // Apply intensity scaling, exaggerate curve differences (x2) to be more obvious
+                    // We re-add the +3.0dB global offset to combat Android's automatic EQ volume reduction when enabled
                     var targetLevel = ((gainDb * currentIntensity * 2.0f + 3.0f) * 100).toInt()
                     
-                    // Apply Bass Boost on lowest bands
-                    if (currentBassBoost > 0f) {
-                        if (i == 0) {
-                            targetLevel += ((maxLevel - targetLevel) * currentBassBoost).toInt()
-                        } else if (i == 1) {
-                            targetLevel += ((maxLevel - targetLevel) * (currentBassBoost * 0.5f)).toInt()
+                    // Apply Custom Tuning if enabled
+                    if (isCustomTuningEnabled) {
+                        val bassNorm = customBass / 5.0f      // -1.0 to 1.0
+                        val vocalsNorm = customVocals / 5.0f
+                        val trebleNorm = customTreble / 5.0f
+
+                        // Apply low shelf for Bass (up to ~250Hz)
+                        if (bandFreq <= 250) {
+                            val factor = when {
+                                bandFreq <= 70 -> 1.0f    // 31, 62
+                                bandFreq <= 130 -> 0.7f   // 125
+                                else -> 0.35f             // 250
+                            }
+                            if (bassNorm > 0) {
+                                targetLevel += ((maxLevel - targetLevel) * bassNorm * factor).toInt()
+                            } else if (bassNorm < 0) {
+                                targetLevel -= ((targetLevel - minLevel) * -bassNorm * factor).toInt()
+                            }
+                        }
+
+                        // Apply wide bell for Vocals (Mids: 500Hz to 4000Hz)
+                        if (bandFreq in 300..5000) {
+                            val factor = when {
+                                bandFreq in 800..2500 -> 1.0f   // 1000, 2000
+                                bandFreq in 400..3000 -> 0.65f  // 500
+                                else -> 0.35f                   // 4000
+                            }
+                            if (vocalsNorm > 0) {
+                                targetLevel += ((maxLevel - targetLevel) * vocalsNorm * factor).toInt()
+                            } else if (vocalsNorm < 0) {
+                                targetLevel -= ((targetLevel - minLevel) * -vocalsNorm * factor).toInt()
+                            }
+                        }
+
+                        // Apply high shelf for Treble (8000Hz+)
+                        if (bandFreq >= 6000) {
+                            val factor = when {
+                                bandFreq >= 14000 -> 1.0f  // 16000
+                                bandFreq >= 7000 -> 0.8f   // 8000
+                                else -> 0.5f               // Interpolating
+                            }
+                            if (trebleNorm > 0) {
+                                targetLevel += ((maxLevel - targetLevel) * trebleNorm * factor).toInt()
+                            } else if (trebleNorm < 0) {
+                                targetLevel -= ((targetLevel - minLevel) * -trebleNorm * factor).toInt()
+                            }
                         }
                     }
 

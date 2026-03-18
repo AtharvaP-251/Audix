@@ -65,7 +65,7 @@ Avoid repetitive API calls for the same song to save costs and reduce latency.
 ### Tasks
 - [x] Implement a Room database (`SongCache` entity: song_title, artist_name, detected_genre, timestamp).
 - [x] Build logic to first interrogate the database; call the AI API only if there's a cache miss.
-- [ ] **[Manual Intervention Required]** Play a sequence of songs manually and observe the application logs to ensure the API is called exactly once per unique track.
+- [x] **[Manual Intervention Required]** Play a sequence of songs manually and observe the application logs to ensure the API is called exactly once per unique track.
 
 ---
 
@@ -90,7 +90,7 @@ Provide intuitive control over the EQ's strength.
 - [x] Implement a 0–100% UI slider using Jetpack Compose.
 - [x] Develop the logic to scale EQ band values proportionally to the slider's value (e.g., +5 dB at 100% becomes +2.5 dB at 50%).
 - [x] Persist the user's intensity preference using DataStore.
-- [ ] **[Manual Intervention Required]** Manually drag the slider while music is playing to verify that the EQ intensity morphs smoothly and sounds natural without audio artifacts or popping.
+- [x] **[Manual Intervention Required]** Manually drag the slider while music is playing to verify that the EQ intensity morphs smoothly and sounds natural without audio artifacts or popping.
 
 ---
 

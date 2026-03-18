@@ -109,10 +109,19 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, userPreferences
     val isServiceConnected by SongState.isServiceConnected.collectAsState()
 
     val eqIntensity by userPreferencesRepository.eqIntensityFlow.collectAsState(initial = 1.0f)
-    var sliderPosition by remember(eqIntensity) { mutableStateOf(eqIntensity) }
+    var eqIntensityPosition by remember(eqIntensity) { mutableStateOf(eqIntensity) }
 
-    val bassBoostIntensity by userPreferencesRepository.bassBoostFlow.collectAsState(initial = 0.0f)
-    var bassBoostPosition by remember(bassBoostIntensity) { mutableStateOf(bassBoostIntensity) }
+    val customTuningEnabledPref by userPreferencesRepository.customTuningEnabledFlow.collectAsState(initial = false)
+    var isCustomTuningEnabled by remember(customTuningEnabledPref) { mutableStateOf(customTuningEnabledPref) }
+
+    val customBassPref by userPreferencesRepository.customBassFlow.collectAsState(initial = 0.0f)
+    var customBassPosition by remember(customBassPref) { mutableStateOf(customBassPref) }
+
+    val customVocalsPref by userPreferencesRepository.customVocalsFlow.collectAsState(initial = 0.0f)
+    var customVocalsPosition by remember(customVocalsPref) { mutableStateOf(customVocalsPref) }
+
+    val customTreblePref by userPreferencesRepository.customTrebleFlow.collectAsState(initial = 0.0f)
+    var customTreblePosition by remember(customTreblePref) { mutableStateOf(customTreblePref) }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -120,8 +129,20 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, userPreferences
         eqEngine.currentIntensity = eqIntensity
     }
 
-    LaunchedEffect(bassBoostIntensity) {
-        eqEngine.currentBassBoost = bassBoostIntensity
+    LaunchedEffect(customTuningEnabledPref) {
+        eqEngine.isCustomTuningEnabled = customTuningEnabledPref
+    }
+
+    LaunchedEffect(customBassPref) {
+        eqEngine.customBass = customBassPref
+    }
+
+    LaunchedEffect(customVocalsPref) {
+        eqEngine.customVocals = customVocalsPref
+    }
+
+    LaunchedEffect(customTreblePref) {
+        eqEngine.customTreble = customTreblePref
     }
 
     LaunchedEffect(currentSong, isAutoEqEnabled) {
@@ -231,16 +252,16 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, userPreferences
         Text(text = "Audix EQ Engine", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
         
-        Text(text = "EQ Intensity: ${(sliderPosition * 100).toInt()}%")
+        Text(text = "EQ Intensity: ${(eqIntensityPosition * 100).toInt()}%")
         androidx.compose.material3.Slider(
-            value = sliderPosition,
+            value = eqIntensityPosition,
             onValueChange = { newValue ->
-                sliderPosition = newValue
+                eqIntensityPosition = newValue
                 eqEngine.currentIntensity = newValue
             },
             onValueChangeFinished = {
                 coroutineScope.launch {
-                    userPreferencesRepository.saveEqIntensity(sliderPosition)
+                    userPreferencesRepository.saveEqIntensity(eqIntensityPosition)
                 }
             },
             valueRange = 0f..1f,
@@ -257,6 +278,11 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, userPreferences
                 onCheckedChange = { 
                     isAutoEqEnabled = it 
                     if (it) {
+                        isCustomTuningEnabled = false
+                        eqEngine.isCustomTuningEnabled = false
+                        coroutineScope.launch {
+                            userPreferencesRepository.saveCustomTuningEnabled(false)
+                        }
                         if (currentSong?.genre != null) {
                             val preset = EQPresetLibrary.getPresetForGenre(currentSong!!.genre!!)
                             if (preset != null) {
@@ -265,7 +291,7 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, userPreferences
                         }
                     } else {
                         eqEngine.applyPreset(com.audix.app.audio.EQPreset("Flat", emptyMap()))
-                        if (eqEngine.currentBassBoost == 0f) {
+                        if (!isCustomTuningEnabled) {
                             eqEngine.setEnabled(false)
                         }
                     }
@@ -274,20 +300,81 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, userPreferences
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Bass Boost: ${(bassBoostPosition * 100).toInt()}%")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Custom Tuning (-5 to 5)")
+            Spacer(modifier = Modifier.width(8.dp))
+            Switch(
+                checked = isCustomTuningEnabled,
+                onCheckedChange = { 
+                    isCustomTuningEnabled = it 
+                    eqEngine.isCustomTuningEnabled = it
+                    coroutineScope.launch {
+                        userPreferencesRepository.saveCustomTuningEnabled(it)
+                    }
+                    if (it) {
+                        isAutoEqEnabled = false
+                        eqEngine.applyPreset(com.audix.app.audio.EQPreset("Flat", emptyMap()))
+                    } else if (!isAutoEqEnabled) {
+                        eqEngine.setEnabled(false)
+                    }
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val tuningColor = if (isCustomTuningEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+
+        Text(text = "Bass: ${if (customBassPosition > 0) "+" else ""}${customBassPosition.toInt()}", color = tuningColor)
         androidx.compose.material3.Slider(
-            value = bassBoostPosition,
+            value = customBassPosition,
             onValueChange = { newValue ->
-                bassBoostPosition = newValue
-                eqEngine.currentBassBoost = newValue
+                customBassPosition = newValue
+                eqEngine.customBass = newValue
             },
             onValueChangeFinished = {
                 coroutineScope.launch {
-                    userPreferencesRepository.saveBassBoost(bassBoostPosition)
+                    userPreferencesRepository.saveCustomBass(customBassPosition)
                 }
             },
-            valueRange = 0f..1f,
+            valueRange = -5f..5f,
             steps = 9,
+            enabled = isCustomTuningEnabled,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Text(text = "Vocals: ${if (customVocalsPosition > 0) "+" else ""}${customVocalsPosition.toInt()}", color = tuningColor)
+        androidx.compose.material3.Slider(
+            value = customVocalsPosition,
+            onValueChange = { newValue ->
+                customVocalsPosition = newValue
+                eqEngine.customVocals = newValue
+            },
+            onValueChangeFinished = {
+                coroutineScope.launch {
+                    userPreferencesRepository.saveCustomVocals(customVocalsPosition)
+                }
+            },
+            valueRange = -5f..5f,
+            steps = 9,
+            enabled = isCustomTuningEnabled,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Text(text = "Treble: ${if (customTreblePosition > 0) "+" else ""}${customTreblePosition.toInt()}", color = tuningColor)
+        androidx.compose.material3.Slider(
+            value = customTreblePosition,
+            onValueChange = { newValue ->
+                customTreblePosition = newValue
+                eqEngine.customTreble = newValue
+            },
+            onValueChangeFinished = {
+                coroutineScope.launch {
+                    userPreferencesRepository.saveCustomTreble(customTreblePosition)
+                }
+            },
+            valueRange = -5f..5f,
+            steps = 9,
+            enabled = isCustomTuningEnabled,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
     }
