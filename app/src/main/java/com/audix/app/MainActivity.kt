@@ -1,26 +1,40 @@
 package com.audix.app
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.audix.app.audio.EqEngine
+import com.audix.app.state.SongState
 import com.audix.app.ui.theme.AudixTheme
 
 class MainActivity : ComponentActivity() {
@@ -51,21 +65,90 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun EqControls(eqEngine: EqEngine, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     var isBassBoostEnabled by remember { mutableStateOf(false) }
+    var isPermissionGranted by remember {
+        mutableStateOf(NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName))
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isPermissionGranted = NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // Observe active song state
+    val currentSong by SongState.currentSong.collectAsState()
+    val isServiceConnected by SongState.isServiceConnected.collectAsState()
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Audix Basic EQ Engine")
+        if (!isPermissionGranted) {
+            Text(
+                text = "Audix requires Notification Access to detect playing songs. Please enable it in Settings.",
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                context.startActivity(intent)
+            }) {
+                Text("Grant Notification Access")
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        } else if (!isServiceConnected) {
+            Text(
+                text = "Service is disconnected. Please toggle Notification Access OFF and ON again in Settings.",
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                context.startActivity(intent)
+            }) {
+                Text("Open Settings")
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        } else {
+            if (currentSong != null) {
+                Text(
+                    text = "Now Playing:\n${currentSong!!.title}\nby ${currentSong!!.artist}",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            } else {
+                Text(
+                    text = "No song detected yet.\nPlay music in Spotify or YouTube Music.",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        Text(text = "Audix Basic EQ Engine", style = MaterialTheme.typography.titleLarge)
+        Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
                 val newState = !isBassBoostEnabled
                 isBassBoostEnabled = newState
                 eqEngine.toggleBassBoost(newState)
-            },
-            modifier = Modifier.padding(top = 16.dp)
+            }
         ) {
             Text(if (isBassBoostEnabled) "Disable Bass Boost" else "Enable Bass Boost")
         }

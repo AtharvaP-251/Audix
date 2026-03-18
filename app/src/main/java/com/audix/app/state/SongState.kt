@@ -1,0 +1,14 @@
+package com.audix.app.state
+
+import kotlinx.coroutines.flow.MutableStateFlow
+
+data class SongInfo(
+    val title: String,
+    val artist: String,
+    val packageName: String = ""
+)
+
+object SongState {
+    val currentSong = MutableStateFlow<SongInfo?>(null)
+    val isServiceConnected = MutableStateFlow(false)
+}
