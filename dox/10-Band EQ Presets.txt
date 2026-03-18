@@ -1,0 +1,818 @@
+# 10-Band EQ Presets & Guidance — Pro Audio Engineer Deliverable
+
+Friendly, practical, and tuned for real-world mixing/mastering. Below you’ll find **two 10-band EQ presets (Conservative / Aggressive)** for each genre using the standard centers: **31, 62, 125, 250, 500, 1k, 2k, 4k, 8k, 16k Hz**.
+Each band entry includes: **Type → Center → Gain (dB) → Q (or slope) → Short rationale**.
+
+> **Quick rules I follow here**
+>
+> * No single static boost > **+9 dB** (absolute max). Safer default: **±6 dB** for most static EQ moves.
+> * Cuts can be deeper for problem removal (surgical notches: Q 6–12) but use sparingly.
+> * These are starting points — always A/B, sweep, and trust your ears.
+
+---
+
+# 1) Rock
+
+## Conservative
+
+```
+31 Hz  — Low Shelf — +1.5 dB  — Q: shelf — Rationale: adds low weight to kick/bass without boom.
+62 Hz  — Bell      — +1.0 dB  — Q: 1.2  — Rationale: tightens punch of kick/bass.
+125 Hz — Bell      — -1.0 dB  — Q: 1.4  — Rationale: reduces guitar/bass mud.
+250 Hz — Bell      — -0.6 dB  — Q: 1.6  — Rationale: clears boxiness in guitars/vocals.
+500 Hz — Bell      — +0.0 dB  — Q: 1.4  — Rationale: preserves body of vocal/guitar.
+1 kHz  — Bell      — +0.5 dB  — Q: 1.6  — Rationale: presence for vocals/guitars.
+2 kHz  — Bell      — +1.0 dB  — Q: 1.4  — Rationale: attack for snare and guitars.
+4 kHz  — Bell      — +0.5 dB  — Q: 1.8  — Rationale: presence/definition.
+8 kHz  — Bell      — +0.8 dB  — Q: 1.2  — Rationale: cymbals and air.
+16 kHz — High Shelf— +1.2 dB  — Q: shelf — Rationale: sheen and top-end sparkle.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Shelf — +3.5 dB  — Q: shelf — Rationale: heavyweight low-end for punchy rock mixes.
+62 Hz  — Bell     — +2.5 dB  — Q: 1.0  — Rationale: emphasizes thump (kick/bass).
+125 Hz — Bell     — -2.5 dB  — Q: 1.6  — Rationale: removes midrange mud.
+250 Hz — Bell     — -1.5 dB  — Q: 1.8  — Rationale: de-box guitars/vocals.
+500 Hz — Bell     — +0.5 dB  — Q: 1.6  — Rationale: keeps body.
+1 kHz  — Bell     — +1.0 dB  — Q: 1.6  — Rationale: vocal intelligibility.
+2 kHz  — Bell     — +2.0 dB  — Q: 1.2  — Rationale: snare/guitar attack.
+4 kHz  — Bell     — +2.0 dB  — Q: 1.4  — Rationale: bite and presence.
+8 kHz  — Bell     — +2.5 dB  — Q: 1.0  — Rationale: cymbal shimmer and sheen.
+16 kHz — High Shelf— +3.0 dB  — Q: shelf — Rationale: modern loud playback brightness.
+```
+
+---
+
+# 2) Pop
+
+## Conservative
+
+```
+31 Hz  — Low Shelf — +1.5 dB  — Q: shelf — Rationale: controlled low weight for radio compatibility.
+62 Hz  — Bell     — +1.0 dB  — Q: 1.1  — Rationale: sub/punch balance.
+125 Hz — Bell     — -1.0 dB  — Q: 1.6  — Rationale: reduces build up under lead vocal.
+250 Hz — Bell     — -0.5 dB  — Q: 1.4  — Rationale: unclutters midrange.
+500 Hz — Bell     — +0.3 dB  — Q: 1.6  — Rationale: keeps warmth.
+1 kHz  — Bell     — +0.6 dB  — Q: 1.6  — Rationale: vocal presence.
+2 kHz  — Bell     — +1.2 dB  — Q: 1.4  — Rationale: vocal definition and clarity.
+4 kHz  — Bell     — +1.0 dB  — Q: 1.6  — Rationale: presence and articulation.
+8 kHz  — Bell     — +1.5 dB  — Q: 1.2  — Rationale: air and sparkle.
+16 kHz — High Shelf— +1.8 dB  — Q: shelf — Rationale: overall sheen for streaming.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Shelf — +4.0 dB  — Q: shelf — Rationale: big low-end for commercial punch.
+62 Hz  — Bell     — +3.0 dB  — Q: 0.9  — Rationale: prominent sub/bass.
+125 Hz — Bell     — -3.0 dB  — Q: 1.6  — Rationale: remove muddiness from stacked elements.
+250 Hz — Bell     — -1.5 dB  — Q: 1.8  — Rationale: tighten mids.
+500 Hz — Bell     — +1.0 dB  — Q: 1.6  — Rationale: warmth on vocals.
+1 kHz  — Bell     — +1.5 dB  — Q: 1.6  — Rationale: clarity.
+2 kHz  — Bell     — +2.5 dB  — Q: 1.2  — Rationale: articulation, presence.
+4 kHz  — Bell     — +2.5 dB  — Q: 1.2  — Rationale: forward top-mid presence.
+8 kHz  — Bell     — +3.0 dB  — Q: 1.0  — Rationale: added shimmer for consumer playback.
+16 kHz — High Shelf— +3.5 dB  — Q: shelf — Rationale: bright gleam for clarity on small speakers.
+```
+
+---
+
+# 3) Hip-Hop
+
+## Conservative
+
+```
+31 Hz  — Low Shelf — +2.5 dB  — Q: shelf — Rationale: low sub foundation without boomy bleed.
+62 Hz  — Bell     — +2.0 dB  — Q: 1.0  — Rationale: solid kick presence.
+125 Hz — Bell     — -1.5 dB  — Q: 1.6  — Rationale: clears low-mid boxiness from synths/bass.
+250 Hz — Bell     — -0.8 dB  — Q: 1.6  — Rationale: reduces muddiness.
+500 Hz — Bell     — +0.5 dB  — Q: 1.6  — Rationale: keeps warmth on vocals/instruments.
+1 kHz  — Bell     — +0.8 dB  — Q: 1.4  — Rationale: vocal clarity.
+2 kHz  — Bell     — +1.5 dB  — Q: 1.2  — Rationale: consonant clarity on rap vocals.
+4 kHz  — Bell     — +1.0 dB  — Q: 1.4  — Rationale: snap for snares/claps.
+8 kHz  — Bell     — +1.8 dB  — Q: 1.0  — Rationale: hi-hat and air.
+16 kHz — High Shelf— +1.5 dB  — Q: shelf — Rationale: gentle sheen.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Shelf — +6.0 dB  — Q: shelf — Rationale: powerful sub for club playback (use with multiband).
+62 Hz  — Bell     — +4.0 dB  — Q: 0.9  — Rationale: emphasized thump.
+125 Hz — Bell     — -3.5 dB  — Q: 1.6  — Rationale: removes clutter so kick and 808 don't fight.
+250 Hz — Bell     — -2.0 dB  — Q: 1.8  — Rationale: tightens low-mids.
+500 Hz — Bell     — +1.2 dB  — Q: 1.6  — Rationale: adds body.
+1 kHz  — Bell     — +1.5 dB  — Q: 1.6  — Rationale: intelligibility.
+2 kHz  — Bell     — +2.5 dB  — Q: 1.2  — Rationale: attack and presence of vocals.
+4 kHz  — Bell     — +2.0 dB  — Q: 1.2  — Rationale: snap for percussion.
+8 kHz  — Bell     — +3.0 dB  — Q: 1.0  — Rationale: hi-hat clarity.
+16 kHz — High Shelf— +3.5 dB  — Q: shelf — Rationale: modern streaming top-end.
+```
+
+> Note: aggressive boosts at 31–62 Hz should be checked against playback systems and limited/controlled with multiband compression or sub harmonic processing.
+
+---
+
+# 4) Classical
+
+## Conservative
+
+```
+31 Hz  — Low Cut  — 0 dB — cutoff: 20–25 Hz, slope 12 dB/oct — Rationale: remove inaudible rumble without thinning natural low end.
+62 Hz  — Bell     — +0.5 dB  — Q: 1.2  — Rationale: subtle weight for orchestral bass.
+125 Hz — Bell     — -0.5 dB  — Q: 1.4  — Rationale: reduce muddiness from lower strings.
+250 Hz — Bell     — -0.4 dB  — Q: 1.6  — Rationale: reduces boxy body without losing warmth.
+500 Hz — Bell     — +0.2 dB  — Q: 1.6  — Rationale: preserves instrument body.
+1 kHz  — Bell     — +0.2 dB  — Q: 1.6  — Rationale: clarity without making it forward.
+2 kHz  — Bell     — +0.3 dB  — Q: 1.4  — Rationale: articulation of woodwinds/brass.
+4 kHz  — Bell     — +0.5 dB  — Q: 1.6  — Rationale: definition of bow/noise.
+8 kHz  — Bell     — +0.6 dB  — Q: 1.2  — Rationale: air and detail.
+16 kHz — High Shelf— +0.8 dB  — Q: shelf — Rationale: air, very subtle.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Cut  — 0 dB — cutoff: 18–22 Hz, slope 12 dB/oct — Rationale: keep very deep fundamentals if present.
+62 Hz  — Bell     — +1.5 dB  — Q: 1.0  — Rationale: fuller orchestral bottom.
+125 Hz — Bell     — -1.5 dB  — Q: 1.8  — Rationale: remove low muddiness.
+250 Hz — Bell     — -1.0 dB  — Q: 1.8  — Rationale: reduce boxiness.
+500 Hz — Bell     — +0.8 dB  — Q: 1.6  — Rationale: slightly warmer body.
+1 kHz  — Bell     — +1.0 dB  — Q: 1.6  — Rationale: clarity on soloists.
+2 kHz  — Bell     — +1.2 dB  — Q: 1.4  — Rationale: presence for articulation.
+4 kHz  — Bell     — +1.5 dB  — Q: 1.4  — Rationale: air and definition.
+8 kHz  — Bell     — +2.0 dB  — Q: 1.2  — Rationale: detail and room tone.
+16 kHz — High Shelf— +2.5 dB  — Q: shelf — Rationale: delicate sheen for high strings/air.
+```
+
+> Classical is about transparency — keep moves subtle and preserve instrument naturalness.
+
+---
+
+# 5) Jazz
+
+## Conservative
+
+```
+31 Hz  — Low Cut  — cutoff: 20–30 Hz, slope 12 dB/oct — Rationale: remove rumble, keep upright bass weight.
+62 Hz  — Bell     — +1.0 dB  — Q: 1.2  — Rationale: body for bass.
+125 Hz — Bell     — -0.5 dB  — Q: 1.4  — Rationale: reduce low-mid haze.
+250 Hz — Bell     — -0.4 dB  — Q: 1.6  — Rationale: clarity for instruments.
+500 Hz — Bell     — +0.3 dB  — Q: 1.6  — Rationale: natural warmth.
+1 kHz  — Bell     — +0.5 dB  — Q: 1.6  — Rationale: presence for sax/piano.
+2 kHz  — Bell     — +0.6 dB  — Q: 1.4  — Rationale: articulation.
+4 kHz  — Bell     — +0.7 dB  — Q: 1.6  — Rationale: cymbal/attack clarity.
+8 kHz  — Bell     — +0.8 dB  — Q: 1.2  — Rationale: air.
+16 kHz — High Shelf— +1.0 dB  — Q: shelf — Rationale: smooth sheen.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Cut  — cutoff: 20 Hz, slope 12 dB/oct — Rationale: retain full acoustic bass.
+62 Hz  — Bell     — +2.0 dB  — Q: 1.0  — Rationale: fuller bass presence.
+125 Hz — Bell     — -1.5 dB  — Q: 1.8  — Rationale: reduce muddiness from double bass/piano.
+250 Hz — Bell     — -1.0 dB  — Q: 1.8  — Rationale: cleaner midrange.
+500 Hz — Bell     — +1.0 dB  — Q: 1.6  — Rationale: warmth.
+1 kHz  — Bell     — +1.5 dB  — Q: 1.6  — Rationale: solo presence.
+2 kHz  — Bell     — +1.8 dB  — Q: 1.4  — Rationale: articulation.
+4 kHz  — Bell     — +2.0 dB  — Q: 1.4  — Rationale: cymbal/snap.
+8 kHz  — Bell     — +2.0 dB  — Q: 1.2  — Rationale: air.
+16 kHz — High Shelf— +2.5 dB  — Q: shelf — Rationale: brighter sheen for modern jazz recordings.
+```
+
+---
+
+# 6) Electronic (EDM)
+
+## Conservative
+
+```
+31 Hz  — Low Shelf — +2.0 dB  — Q: shelf — Rationale: foundational sub weight.
+62 Hz  — Bell     — +1.5 dB  — Q: 1.0  — Rationale: low punch for kicks/808s.
+125 Hz — Bell     — -1.0 dB  — Q: 1.6  — Rationale: control low-mid mud.
+250 Hz — Bell     — -0.6 dB  — Q: 1.6  — Rationale: clears synth body clutter.
+500 Hz — Bell     — +0.5 dB  — Q: 1.6  — Rationale: keeps presence.
+1 kHz  — Bell     — +1.0 dB  — Q: 1.4  — Rationale: synth clarity.
+2 kHz  — Bell     — +1.5 dB  — Q: 1.2  — Rationale: transients/attack.
+4 kHz  — Bell     — +1.8 dB  — Q: 1.4  — Rationale: presence.
+8 kHz  — Bell     — +2.0 dB  — Q: 1.0  — Rationale: hi-end detail.
+16 kHz — High Shelf— +2.2 dB  — Q: shelf — Rationale: overall air for bright playback.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Shelf — +7.0 dB  — Q: shelf — Rationale: sub-heavy club sound (use compression/limit).
+62 Hz  — Bell     — +4.0 dB  — Q: 0.9  — Rationale: kick/808 emphasis.
+125 Hz — Bell     — -3.0 dB  — Q: 1.6  — Rationale: remove low-mid clutter.
+250 Hz — Bell     — -2.0 dB  — Q: 1.8  — Rationale: tighten mixes.
+500 Hz — Bell     — +1.5 dB  — Q: 1.6  — Rationale: body to synths.
+1 kHz  — Bell     — +2.0 dB  — Q: 1.6  — Rationale: synth clarity.
+2 kHz  — Bell     — +3.0 dB  — Q: 1.2  — Rationale: transient attack.
+4 kHz  — Bell     — +3.5 dB  — Q: 1.4  — Rationale: aggressive presence.
+8 kHz  — Bell     — +4.0 dB  — Q: 1.0  — Rationale: hi-end sparkle.
+16 kHz — High Shelf— +4.5 dB  — Q: shelf — Rationale: very bright top for streaming/club.
+```
+
+> Aggressive EDM low boosts definitely require multiband limiting and checking on sub systems.
+
+---
+
+# 7) Metal
+
+## Conservative
+
+```
+31 Hz  — Low Shelf — +2.0 dB  — Q: shelf — Rationale: tight low for kick and low guitar.
+62 Hz  — Bell     — +1.5 dB  — Q: 1.0  — Rationale: low punch.
+125 Hz — Bell     — -1.5 dB  — Q: 1.6  — Rationale: reduces guitar mud.
+250 Hz — Bell     — -1.0 dB  — Q: 1.8  — Rationale: clears boxiness.
+500 Hz — Bell     — +0.3 dB  — Q: 1.6  — Rationale: preserves midbody.
+1 kHz  — Bell     — +1.0 dB  — Q: 1.6  — Rationale: vocal/guitar presence.
+2 kHz  — Bell     — +1.8 dB  — Q: 1.2  — Rationale: attack for snare and guitars.
+4 kHz  — Bell     — +2.0 dB  — Q: 1.4  — Rationale: harshness/definition.
+8 kHz  — Bell     — +1.5 dB  — Q: 1.2  — Rationale: cymbal clarity.
+16 kHz — High Shelf— +1.8 dB  — Q: shelf — Rationale: sheen.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Shelf — +4.5 dB  — Q: shelf — Rationale: heavy bottom for modern metal.
+62 Hz  — Bell     — +3.0 dB  — Q: 0.9  — Rationale: emphasized low end.
+125 Hz — Bell     — -4.0 dB  — Q: 1.8  — Rationale: cut mud from dense guitars.
+250 Hz — Bell     — -2.5 dB  — Q: 1.8  — Rationale: reduce box to free up guitars.
+500 Hz — Bell     — +1.0 dB  — Q: 1.6  — Rationale: body for vocals.
+1 kHz  — Bell     — +2.0 dB  — Q: 1.6  — Rationale: bite/harmonics.
+2 kHz  — Bell     — +3.5 dB  — Q: 1.2  — Rationale: pick/snip on guitars.
+4 kHz  — Bell     — +3.0 dB  — Q: 1.4  — Rationale: aggressive presence.
+8 kHz  — Bell     — +2.5 dB  — Q: 1.0  — Rationale: cymbal shimmer.
+16 kHz — High Shelf— +3.0 dB  — Q: shelf — Rationale: sheen for modern loudness.
+```
+
+> Use narrow surgical cuts (Q 4–8) to remove ringing/resonances on distorted guitars rather than broad boosts.
+
+---
+
+# 8) R&B
+
+## Conservative
+
+```
+31 Hz  — Low Shelf — +2.0 dB  — Q: shelf — Rationale: smooth low sub presence.
+62 Hz  — Bell     — +1.5 dB  — Q: 1.0  — Rationale: warm bass support.
+125 Hz — Bell     — -1.0 dB  — Q: 1.6  — Rationale: tame muddiness under vocal.
+250 Hz — Bell     — -0.6 dB  — Q: 1.6  — Rationale: clarity in instrumental mids.
+500 Hz — Bell     — +0.6 dB  — Q: 1.6  — Rationale: richness.
+1 kHz  — Bell     — +0.8 dB  — Q: 1.6  — Rationale: vocal presence.
+2 kHz  — Bell     — +1.2 dB  — Q: 1.4  — Rationale: consonant clarity.
+4 kHz  — Bell     — +1.6 dB  — Q: 1.4  — Rationale: breath/attack.
+8 kHz  — Bell     — +1.8 dB  — Q: 1.2  — Rationale: silk and air.
+16 kHz — High Shelf— +2.0 dB  — Q: shelf — Rationale: sheen and polish.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Shelf — +5.0 dB  — Q: shelf — Rationale: deep sub for modern R&B.
+62 Hz  — Bell     — +3.0 dB  — Q: 0.9  — Rationale: warmth and weight.
+125 Hz — Bell     — -3.0 dB  — Q: 1.6  — Rationale: remove low clouding.
+250 Hz — Bell     — -1.5 dB  — Q: 1.8  — Rationale: clean up midrange.
+500 Hz — Bell     — +2.0 dB  — Q: 1.6  — Rationale: lushness for lead vocals.
+1 kHz  — Bell     — +2.0 dB  — Q: 1.6  — Rationale: forward vocal placement.
+2 kHz  — Bell     — +2.5 dB  — Q: 1.2  — Rationale: articulation.
+4 kHz  — Bell     — +3.0 dB  — Q: 1.2  — Rationale: presence/clarity.
+8 kHz  — Bell     — +3.5 dB  — Q: 1.0  — Rationale: detailed air.
+16 kHz — High Shelf— +4.0 dB  — Q: shelf — Rationale: bright polish for streaming.
+```
+
+---
+
+# 9) K-Pop
+
+## Conservative
+
+```
+31 Hz  — Low Shelf — +2.0 dB  — Q: shelf — Rationale: controlled low for dance/pop hybrid.
+62 Hz  — Bell     — +1.5 dB  — Q: 1.0  — Rationale: sub presence for modern production.
+125 Hz — Bell     — -1.2 dB  — Q: 1.6  — Rationale: reduce muddiness from layered instruments.
+250 Hz — Bell     — -0.8 dB  — Q: 1.6  — Rationale: cleans dense midrange.
+500 Hz — Bell     — +0.5 dB  — Q: 1.6  — Rationale: body for vocals.
+1 kHz  — Bell     — +1.0 dB  — Q: 1.6  — Rationale: lead vocal clarity.
+2 kHz  — Bell     — +1.8 dB  — Q: 1.4  — Rationale: articulation/projection.
+4 kHz  — Bell     — +2.0 dB  — Q: 1.4  — Rationale: forward presence.
+8 kHz  — Bell     — +2.2 dB  — Q: 1.0  — Rationale: sparkle for hooks.
+16 kHz — High Shelf— +2.5 dB  — Q: shelf — Rationale: bright sheen for streaming.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Shelf — +5.0 dB  — Q: shelf — Rationale: modern commercial low-end.
+62 Hz  — Bell     — +3.5 dB  — Q: 0.9  — Rationale: emphasized sub/punch.
+125 Hz — Bell     — -3.0 dB  — Q: 1.8  — Rationale: clear stacked elements.
+250 Hz — Bell     — -2.0 dB  — Q: 1.8  — Rationale: midrange separation.
+500 Hz — Bell     — +1.8 dB  — Q: 1.6  — Rationale: warmth for vocal leads.
+1 kHz  — Bell     — +2.0 dB  — Q: 1.6  — Rationale: forward vocal.
+2 kHz  — Bell     — +3.0 dB  — Q: 1.2  — Rationale: argument clarity.
+4 kHz  — Bell     — +3.5 dB  — Q: 1.2  — Rationale: presence and edge.
+8 kHz  — Bell     — +4.0 dB  — Q: 1.0  — Rationale: bright hooks.
+16 kHz — High Shelf— +4.5 dB  — Q: shelf — Rationale: glossy top for streaming platforms.
+```
+
+---
+
+# 10) Lo-fi
+
+## Conservative
+
+```
+31 Hz  — Low Cut  — cutoff: 40–60 Hz, slope 12 dB/oct — Rationale: remove rumble, lo-fi often lacks sub focus.
+62 Hz  — Bell     — +0.8 dB  — Q: 1.2  — Rationale: gentle warmth.
+125 Hz — Bell     — -1.0 dB  — Q: 1.6  — Rationale: dulls boxy low-mid for intimate textures.
+250 Hz — Bell     — -0.5 dB  — Q: 1.6  — Rationale: clarity for lo-fi instruments.
+500 Hz — Bell     — +0.2 dB  — Q: 1.6  — Rationale: preserves body.
+1 kHz  — Bell     — +0.3 dB  — Q: 1.6  — Rationale: subtle presence.
+2 kHz  — Bell     — -0.5 dB  — Q: 1.6  — Rationale: smooths harshness from lo-fi processing.
+4 kHz  — Bell     — -0.2 dB  — Q: 1.6  — Rationale: reduces brittle highs.
+8 kHz  — Bell     — +0.5 dB  — Q: 1.2  — Rationale: adds gentle air.
+16 kHz — High Shelf— +0.5 dB  — Q: shelf — Rationale: small top-end sheen.
+```
+
+## Aggressive
+
+```
+31 Hz  — Low Cut  — cutoff: 60–100 Hz, slope 12–18 dB/oct — Rationale: characterful roll-off, vintage vibe.
+62 Hz  — Bell     — +2.0 dB  — Q: 1.0  — Rationale: warm low-mid emphasis.
+125 Hz — Bell     — -3.0 dB  — Q: 1.8  — Rationale: remove muddiness from tape saturation emulation.
+250 Hz — Bell     — -2.0 dB  — Q: 1.8  — Rationale: clean mid clutter.
+500 Hz — Bell     — +1.0 dB  — Q: 1.6  — Rationale: adds body for lo-fi beats.
+1 kHz  — Bell     — +1.0 dB  — Q: 1.6  — Rationale: presence for lo-fi samples.
+2 kHz  — Bell     — -1.5 dB  — Q: 1.8  — Rationale: tame harshness from processed samples.
+4 kHz  — Bell     — -1.0 dB  — Q: 1.6  — Rationale: smoother top.
+8 kHz  — Bell     — +1.5 dB  — Q: 1.0  — Rationale: soft air.
+16 kHz — High Shelf— +2.0 dB  — Q: shelf — Rationale: gentle sparkle if desired.
+```
+
+---
+
+# Summary: Maximum Safe Gain/Cut, Headroom & Why
+
+**Per-band numeric rules (recommended):**
+
+* **Safe static boost range:** **±6 dB** — good starting default for mix/master.
+* **Acceptable static boost maximum (genre-driven):** **+9 dB** absolute hard cap — use only for specific creative contexts and always check downstream limiting and system playback.
+* **Safe static cut range:** up to **-12 dB** (for corrective cuts).
+* **Surgical notch cuts:** **-12 dB to -24 dB** possible, Q 4–12, but used sparingly and solo-checked.
+* **Low/high shelf extreme:** keep under +9 dB; broad shelves affect headroom and perceived loudness heavily.
+
+**Overall headroom / peak targets:**
+
+* **Before limiting (mix bus):** aim to leave **-6 dBFS** peak headroom (conservative) to **-3 dBFS** (more aggressive) before mastering/brick-wall limiting.
+* **After mastering/limiter:** keep **true peak ≤ -1.0 dBTP** (−0.5 dBTP for streaming safety on some platforms).
+* **Why:** aggressive static boosts increase peak energy and may push the limiter to pump or distort; headroom lets you apply dynamic processing safely and retain transient integrity.
+
+---
+
+# Other Important Considerations (short, actionable)
+
+### Shelving vs Bell — when to prefer which
+
+* **Shelving** (low/high shelf) for broad tonal shaping across low or high spectrum (use on sub bass or “air”).
+* **Bell** for targeted correction or musical boosts (use when a specific instrument or region needs adjustment).
+* Use **shelves** to add/subtract overall weight or sheen; use **bells** for separation and corrective work.
+
+### Low-cut (HPF) recommendations per genre (typical cut & slope)
+
+* **Pop / R&B / Hip-Hop / EDM / K-Pop / Metal / Rock:** HPF on the **master/track** where unnecessary at **20–40 Hz** for studio, or **40–80 Hz** on individual non-bass tracks (guitars, vocals) to remove rumble. Slope: **12–24 dB/oct**.
+* **Classical / Jazz:** gentler HPF: **18–25 Hz** (if needed) to avoid thinning acoustic instruments.
+* **Lo-fi:** use higher HPF on non-bass elements (40–100 Hz) for vintage character.
+
+### When to use dynamic EQ / multiband compression instead of static boosts
+
+* Use **dynamic EQ** when a frequency is only occasionally problematic (e.g., bass notes only sometimes clash, sibilance).
+* Use **multiband compression** to control energy in a band across the whole mix (e.g., taming booming low end on the mix bus).
+* Static EQ is fine for consistent tonal shaping; **dynamic** approaches reduce pumping and preserve transients.
+
+### Live sound vs Studio mix vs Headphone/mobile playback
+
+* **Live:** conservative boosts, leave more headroom, and use more HPF on stage mics; avoid narrow, extreme Q unless removing feedback.
+* **Studio mix:** controlled EQ, surgical notches for resonances, and leave headroom for mastering.
+* **Headphone/mobile:** check translation — tops and subs translate differently; prefer balanced mids and controlled sub; test on small speakers.
+
+### Monitoring tips
+
+* **Reference levels:** mix at multiple levels (e.g., ~75–85 dB SPL in a treated room) and low volume checks.
+* **Reference tracks:** A/B with 2–3 commercial references in the same style.
+* **Room correction:** use correction or measurement to understand your room; don’t EQ to fix a poor room — fix the monitoring or account for it with references.
+* **Two-listening rule:** mix at comfortable level and then at low level to test tonal balance.
+
+### Mono compatibility & phase
+
+* Always **check mono** (collapse to mono) for bass buildup or cancellation.
+* Keep **sub-frequencies (below ~200–300 Hz)** more mono; widen mid/high content.
+* Use correlation/phase meters; if summing to mono causes big level loss, hunt for stereo phase inversion or excessive stereo processing on lows.
+
+### LUFS final loudness targets (integrated, rough guidance)
+
+* **Pop / EDM / Hip-Hop / K-Pop / R&B / Metal:** target **-8 to -11 LUFS** integrated for competitive loudness (many streams normalize — aim near **-9 to -12** depending on platform).
+* **Rock:** **-9 to -12 LUFS**.
+* **Classical / Jazz / Lo-fi:** **-14 to -20 LUFS** (more dynamic; less loudness war).
+* **Streaming note:** platforms apply normalization (Spotify ~-14 LUFS R128 integrated target), so extremely hot masters may be turned down — prioritize dynamics.
+
+---
+
+# Application Notes — How to apply these presets in your DAW / EQ plugin
+
+**Order of operations (recommended):**
+
+1. **Gain staging:** Set clip gain / input so tracks peak healthy without clipping.
+2. **Low-cut (HPF)** on tracks that don’t need sub (vocals, guitars, pads).
+3. **Corrective EQ (subtract) first:** surgical cuts to remove resonances (use narrow Q >4).
+4. **Dynamic processing:** de-ess, dynamic EQ on problem bands, multiband compression on bass/masters.
+5. **Additive/shelving EQ for color:** broad musical shapes (shelves, gentle bells).
+6. **Stereo processing/width** only after EQ so you don’t widen phase-problem frequencies.
+7. **Bus processing/mastering:** final gentle bus EQ, glue compression, limiter.
+8. **Check:** A/B, mono sum, multiple playback systems. Iterate.
+
+**Listening checks you must do:**
+
+* Bypass EQ to compare.
+* Solo-in-context (soloing is useful, but always listen in the mix).
+* Sweep with narrow Q to find resonances before cutting.
+* Use correlation meter & true peak meter.
+
+**Manual interventions required examples**
+
+* **De-essing:** 4–8 kHz on vocals — use dynamic EQ or de-esser.
+* **Taming resonances:** narrow Q notches, often 200–800 Hz on guitars/voices.
+* **Rebalancing bass:** if 808 vs kick conflict, use sidechain, pitch/transpose, or dynamic EQ on conflicting fundamental frequencies.
+
+---
+
+# Machine-Readable JSON (all presets)
+
+Below is a JSON object with every genre and both variants. Each band object contains `freq` (Hz), `type`, `gain_db` (number), `q` (number or string), and `rationale`. At the end are global rules (`max_per_band`, `headroom`, `notes`). You can import and adjust programmatically.
+
+```json
+{
+  "meta": {
+    "center_frequencies": [31,62,125,250,500,1000,2000,4000,8000,16000],
+    "safe_static_boost_db": 6,
+    "absolute_static_boost_cap_db": 9,
+    "safe_static_cut_db": -12,
+    "surgical_cut_possible_db": -24,
+    "mix_headroom_before_mastering_dbfs": "-6 to -3 dBFS",
+    "true_peak_after_limiter_dbtp": "<= -1.0 dBTP (or -0.5 for extra safety)"
+  },
+  "presets": [
+    {
+      "genre": "Rock",
+      "variants": {
+        "conservative": {
+          "bands": [
+            {"freq":31,"type":"low_shelf","gain_db":1.5,"q":"shelf","rationale":"adds low weight to kick/bass without boom."},
+            {"freq":62,"type":"bell","gain_db":1.0,"q":1.2,"rationale":"tightens punch of kick/bass."},
+            {"freq":125,"type":"bell","gain_db":-1.0,"q":1.4,"rationale":"reduces guitar/bass mud."},
+            {"freq":250,"type":"bell","gain_db":-0.6,"q":1.6,"rationale":"clears boxiness."},
+            {"freq":500,"type":"bell","gain_db":0.0,"q":1.6,"rationale":"preserves body of vocals/instruments."},
+            {"freq":1000,"type":"bell","gain_db":0.5,"q":1.6,"rationale":"clarity and presence."},
+            {"freq":2000,"type":"bell","gain_db":1.0,"q":1.4,"rationale":"attack of guitars/snare."},
+            {"freq":4000,"type":"bell","gain_db":0.5,"q":1.8,"rationale":"presence and bite."},
+            {"freq":8000,"type":"bell","gain_db":0.8,"q":1.2,"rationale":"air and cymbal clarity."},
+            {"freq":16000,"type":"high_shelf","gain_db":1.2,"q":"shelf","rationale":"high-frequency sheen."}
+          ]
+        },
+        "aggressive": {
+          "bands": [
+            {"freq":31,"type":"low_shelf","gain_db":3.5,"q":"shelf","rationale":"heavyweight low-end for punchy rock mixes."},
+            {"freq":62,"type":"bell","gain_db":2.5,"q":1.0,"rationale":"emphasizes thump (kick/bass)."},
+            {"freq":125,"type":"bell","gain_db":-2.5,"q":1.6,"rationale":"removes midrange mud."},
+            {"freq":250,"type":"bell","gain_db":-1.5,"q":1.8,"rationale":"de-box guitars/vocals."},
+            {"freq":500,"type":"bell","gain_db":0.5,"q":1.6,"rationale":"keeps body."},
+            {"freq":1000,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"vocal intelligibility."},
+            {"freq":2000,"type":"bell","gain_db":2.0,"q":1.2,"rationale":"snare/guitar attack."},
+            {"freq":4000,"type":"bell","gain_db":2.0,"q":1.4,"rationale":"bite and presence."},
+            {"freq":8000,"type":"bell","gain_db":2.5,"q":1.0,"rationale":"cymbal shimmer and sheen."},
+            {"freq":16000,"type":"high_shelf","gain_db":3.0,"q":"shelf","rationale":"modern loud playback brightness."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "Pop",
+      "variants": {
+        "conservative": {
+          "bands": [
+            {"freq":31,"type":"low_shelf","gain_db":1.5,"q":"shelf","rationale":"controlled low weight for radio compatibility."},
+            {"freq":62,"type":"bell","gain_db":1.0,"q":1.1,"rationale":"sub/punch balance."},
+            {"freq":125,"type":"bell","gain_db":-1.0,"q":1.6,"rationale":"reduces build up under lead vocal."},
+            {"freq":250,"type":"bell","gain_db":-0.5,"q":1.4,"rationale":"unclutters midrange."},
+            {"freq":500,"type":"bell","gain_db":0.3,"q":1.6,"rationale":"keeps warmth."},
+            {"freq":1000,"type":"bell","gain_db":0.6,"q":1.6,"rationale":"vocal presence."},
+            {"freq":2000,"type":"bell","gain_db":1.2,"q":1.4,"rationale":"vocal definition and clarity."},
+            {"freq":4000,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"presence and articulation."},
+            {"freq":8000,"type":"bell","gain_db":1.5,"q":1.2,"rationale":"air and sparkle."},
+            {"freq":16000,"type":"high_shelf","gain_db":1.8,"q":"shelf","rationale":"overall sheen for streaming."}
+          ]
+        },
+        "aggressive": {
+          "bands": [
+            {"freq":31,"type":"low_shelf","gain_db":4.0,"q":"shelf","rationale":"big low-end for commercial punch."},
+            {"freq":62,"type":"bell","gain_db":3.0,"q":0.9,"rationale":"prominent sub/bass."},
+            {"freq":125,"type":"bell","gain_db":-3.0,"q":1.6,"rationale":"remove muddiness from stacked elements."},
+            {"freq":250,"type":"bell","gain_db":-1.5,"q":1.8,"rationale":"tighten mids."},
+            {"freq":500,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"warmth on vocals."},
+            {"freq":1000,"type":"bell","gain_db":1.5,"q":1.6,"rationale":"clarity."},
+            {"freq":2000,"type":"bell","gain_db":2.5,"q":1.2,"rationale":"articulation, presence."},
+            {"freq":4000,"type":"bell","gain_db":2.5,"q":1.2,"rationale":"forward top-mid presence."},
+            {"freq":8000,"type":"bell","gain_db":3.0,"q":1.0,"rationale":"added shimmer for consumer playback."},
+            {"freq":16000,"type":"high_shelf","gain_db":3.5,"q":"shelf","rationale":"bright gleam for small speakers."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "Hip-Hop",
+      "variants": {
+        "conservative": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":2.5,"q":"shelf","rationale":"low sub foundation without boomy bleed."},
+            {"freq":62,"type":"bell","gain_db":2.0,"q":1.0,"rationale":"solid kick presence."},
+            {"freq":125,"type":"bell","gain_db":-1.5,"q":1.6,"rationale":"clears low-mid boxiness."},
+            {"freq":250,"type":"bell","gain_db":-0.8,"q":1.6,"rationale":"reduces muddiness."},
+            {"freq":500,"type":"bell","gain_db":0.5,"q":1.6,"rationale":"keeps warmth."},
+            {"freq":1000,"type":"bell","gain_db":0.8,"q":1.4,"rationale":"vocal clarity."},
+            {"freq":2000,"type":"bell","gain_db":1.5,"q":1.2,"rationale":"consonant clarity on rap vocals."},
+            {"freq":4000,"type":"bell","gain_db":1.0,"q":1.4,"rationale":"snap for snares/claps."},
+            {"freq":8000,"type":"bell","gain_db":1.8,"q":1.0,"rationale":"hi-hat and air."},
+            {"freq":16000,"type":"high_shelf","gain_db":1.5,"q":"shelf","rationale":"gentle sheen."}
+          ]
+        },
+        "aggressive": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":6.0,"q":"shelf","rationale":"powerful sub for club playback (use multiband)."},
+            {"freq":62,"type":"bell","gain_db":4.0,"q":0.9,"rationale":"emphasized thump."},
+            {"freq":125,"type":"bell","gain_db":-3.5,"q":1.6,"rationale":"separates kick and 808."},
+            {"freq":250,"type":"bell","gain_db":-2.0,"q":1.8,"rationale":"tightens low-mids."},
+            {"freq":500,"type":"bell","gain_db":1.2,"q":1.6,"rationale":"adds body."},
+            {"freq":1000,"type":"bell","gain_db":1.5,"q":1.6,"rationale":"intelligibility."},
+            {"freq":2000,"type":"bell","gain_db":2.5,"q":1.2,"rationale":"attack and presence of vocals."},
+            {"freq":4000,"type":"bell","gain_db":2.0,"q":1.2,"rationale":"snap for percussion."},
+            {"freq":8000,"type":"bell","gain_db":3.0,"q":1.0,"rationale":"hi-hat clarity."},
+            {"freq":16000,"type":"high_shelf","gain_db":3.5,"q":"shelf","rationale":"modern streaming top-end."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "Classical",
+      "variants": {
+        "conservative": {
+          "bands":[
+            {"freq":31,"type":"low_cut","gain_db":0,"q":"cut@20-25Hz slope12dB/oct","rationale":"remove inaudible rumble without thinning natural low end."},
+            {"freq":62,"type":"bell","gain_db":0.5,"q":1.2,"rationale":"subtle weight for orchestral bass."},
+            {"freq":125,"type":"bell","gain_db":-0.5,"q":1.4,"rationale":"reduce muddiness from lower strings."},
+            {"freq":250,"type":"bell","gain_db":-0.4,"q":1.6,"rationale":"reduces boxy body."},
+            {"freq":500,"type":"bell","gain_db":0.2,"q":1.6,"rationale":"preserves instrument body."},
+            {"freq":1000,"type":"bell","gain_db":0.2,"q":1.6,"rationale":"clarity without making it forward."},
+            {"freq":2000,"type":"bell","gain_db":0.3,"q":1.4,"rationale":"articulation of woodwinds/brass."},
+            {"freq":4000,"type":"bell","gain_db":0.5,"q":1.6,"rationale":"definition of bow/noise."},
+            {"freq":8000,"type":"bell","gain_db":0.6,"q":1.2,"rationale":"air and detail."},
+            {"freq":16000,"type":"high_shelf","gain_db":0.8,"q":"shelf","rationale":"air, very subtle."}
+          ]
+        },
+        "aggressive": {
+          "bands":[
+            {"freq":31,"type":"low_cut","gain_db":0,"q":"cut@18-22Hz slope12dB/oct","rationale":"keep very deep fundamentals if present."},
+            {"freq":62,"type":"bell","gain_db":1.5,"q":1.0,"rationale":"fuller orchestral bottom."},
+            {"freq":125,"type":"bell","gain_db":-1.5,"q":1.8,"rationale":"remove low muddiness."},
+            {"freq":250,"type":"bell","gain_db":-1.0,"q":1.8,"rationale":"reduce boxiness."},
+            {"freq":500,"type":"bell","gain_db":0.8,"q":1.6,"rationale":"slightly warmer body."},
+            {"freq":1000,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"clarity on soloists."},
+            {"freq":2000,"type":"bell","gain_db":1.2,"q":1.4,"rationale":"presence for articulation."},
+            {"freq":4000,"type":"bell","gain_db":1.5,"q":1.4,"rationale":"air and definition."},
+            {"freq":8000,"type":"bell","gain_db":2.0,"q":1.2,"rationale":"detail and room tone."},
+            {"freq":16000,"type":"high_shelf","gain_db":2.5,"q":"shelf","rationale":"delicate sheen for high strings/air."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "Jazz",
+      "variants": {
+        "conservative": {
+          "bands":[
+            {"freq":31,"type":"low_cut","gain_db":0,"q":"cut@20-30Hz slope12dB/oct","rationale":"remove rumble, keep upright bass weight."},
+            {"freq":62,"type":"bell","gain_db":1.0,"q":1.2,"rationale":"body for bass."},
+            {"freq":125,"type":"bell","gain_db":-0.5,"q":1.4,"rationale":"reduce low-mid haze."},
+            {"freq":250,"type":"bell","gain_db":-0.4,"q":1.6,"rationale":"clarity for instruments."},
+            {"freq":500,"type":"bell","gain_db":0.3,"q":1.6,"rationale":"natural warmth."},
+            {"freq":1000,"type":"bell","gain_db":0.5,"q":1.6,"rationale":"presence for sax/piano."},
+            {"freq":2000,"type":"bell","gain_db":0.6,"q":1.4,"rationale":"articulation."},
+            {"freq":4000,"type":"bell","gain_db":0.7,"q":1.6,"rationale":"cymbal/attack clarity."},
+            {"freq":8000,"type":"bell","gain_db":0.8,"q":1.2,"rationale":"air."},
+            {"freq":16000,"type":"high_shelf","gain_db":1.0,"q":"shelf","rationale":"smooth sheen."}
+          ]
+        },
+        "aggressive": {
+          "bands":[
+            {"freq":31,"type":"low_cut","gain_db":0,"q":"cut@20Hz slope12dB/oct","rationale":"retain full acoustic bass."},
+            {"freq":62,"type":"bell","gain_db":2.0,"q":1.0,"rationale":"fuller bass presence."},
+            {"freq":125,"type":"bell","gain_db":-1.5,"q":1.8,"rationale":"remove muddiness."},
+            {"freq":250,"type":"bell","gain_db":-1.0,"q":1.8,"rationale":"clean midrange."},
+            {"freq":500,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"warmth."},
+            {"freq":1000,"type":"bell","gain_db":1.5,"q":1.6,"rationale":"solo presence."},
+            {"freq":2000,"type":"bell","gain_db":1.8,"q":1.4,"rationale":"articulation."},
+            {"freq":4000,"type":"bell","gain_db":2.0,"q":1.4,"rationale":"cymbal/snap."},
+            {"freq":8000,"type":"bell","gain_db":2.0,"q":1.2,"rationale":"air."},
+            {"freq":16000,"type":"high_shelf","gain_db":2.5,"q":"shelf","rationale":"brighter sheen for modern jazz."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "Electronic (EDM)",
+      "variants": {
+        "conservative": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":2.0,"q":"shelf","rationale":"foundational sub weight."},
+            {"freq":62,"type":"bell","gain_db":1.5,"q":1.0,"rationale":"low punch for kicks/808s."},
+            {"freq":125,"type":"bell","gain_db":-1.0,"q":1.6,"rationale":"control low-mid mud."},
+            {"freq":250,"type":"bell","gain_db":-0.6,"q":1.6,"rationale":"clears synth body clutter."},
+            {"freq":500,"type":"bell","gain_db":0.5,"q":1.6,"rationale":"keeps presence."},
+            {"freq":1000,"type":"bell","gain_db":1.0,"q":1.4,"rationale":"synth clarity."},
+            {"freq":2000,"type":"bell","gain_db":1.5,"q":1.2,"rationale":"transients/attack."},
+            {"freq":4000,"type":"bell","gain_db":1.8,"q":1.4,"rationale":"presence."},
+            {"freq":8000,"type":"bell","gain_db":2.0,"q":1.0,"rationale":"hi-end detail."},
+            {"freq":16000,"type":"high_shelf","gain_db":2.2,"q":"shelf","rationale":"overall air."}
+          ]
+        },
+        "aggressive": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":7.0,"q":"shelf","rationale":"sub-heavy club sound (use compression/limit)."},
+            {"freq":62,"type":"bell","gain_db":4.0,"q":0.9,"rationale":"kick/808 emphasis."},
+            {"freq":125,"type":"bell","gain_db":-3.0,"q":1.6,"rationale":"remove low-mid clutter."},
+            {"freq":250,"type":"bell","gain_db":-2.0,"q":1.8,"rationale":"tighten mixes."},
+            {"freq":500,"type":"bell","gain_db":1.5,"q":1.6,"rationale":"body to synths."},
+            {"freq":1000,"type":"bell","gain_db":2.0,"q":1.6,"rationale":"synth clarity."},
+            {"freq":2000,"type":"bell","gain_db":3.0,"q":1.2,"rationale":"transient attack."},
+            {"freq":4000,"type":"bell","gain_db":3.5,"q":1.4,"rationale":"aggressive presence."},
+            {"freq":8000,"type":"bell","gain_db":4.0,"q":1.0,"rationale":"hi-end sparkle."},
+            {"freq":16000,"type":"high_shelf","gain_db":4.5,"q":"shelf","rationale":"very bright top for streaming/club."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "Metal",
+      "variants": {
+        "conservative": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":2.0,"q":"shelf","rationale":"tight low for kick and low guitar."},
+            {"freq":62,"type":"bell","gain_db":1.5,"q":1.0,"rationale":"low punch."},
+            {"freq":125,"type":"bell","gain_db":-1.5,"q":1.6,"rationale":"reduces guitar mud."},
+            {"freq":250,"type":"bell","gain_db":-1.0,"q":1.8,"rationale":"clears boxiness."},
+            {"freq":500,"type":"bell","gain_db":0.3,"q":1.6,"rationale":"preserves midbody."},
+            {"freq":1000,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"vocal/guitar presence."},
+            {"freq":2000,"type":"bell","gain_db":1.8,"q":1.2,"rationale":"attack for snare and guitars."},
+            {"freq":4000,"type":"bell","gain_db":2.0,"q":1.4,"rationale":"harshness/definition."},
+            {"freq":8000,"type":"bell","gain_db":1.5,"q":1.2,"rationale":"cymbal clarity."},
+            {"freq":16000,"type":"high_shelf","gain_db":1.8,"q":"shelf","rationale":"sheen."}
+          ]
+        },
+        "aggressive": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":4.5,"q":"shelf","rationale":"heavy bottom for modern metal."},
+            {"freq":62,"type":"bell","gain_db":3.0,"q":0.9,"rationale":"emphasized low end."},
+            {"freq":125,"type":"bell","gain_db":-4.0,"q":1.8,"rationale":"cut mud from dense guitars."},
+            {"freq":250,"type":"bell","gain_db":-2.5,"q":1.8,"rationale":"reduce box to free up guitars."},
+            {"freq":500,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"body for vocals."},
+            {"freq":1000,"type":"bell","gain_db":2.0,"q":1.6,"rationale":"bite/harmonics."},
+            {"freq":2000,"type":"bell","gain_db":3.5,"q":1.2,"rationale":"pick/snip on guitars."},
+            {"freq":4000,"type":"bell","gain_db":3.0,"q":1.4,"rationale":"aggressive presence."},
+            {"freq":8000,"type":"bell","gain_db":2.5,"q":1.0,"rationale":"cymbal shimmer."},
+            {"freq":16000,"type":"high_shelf","gain_db":3.0,"q":"shelf","rationale":"sheen for loudness."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "R&B",
+      "variants": {
+        "conservative": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":2.0,"q":"shelf","rationale":"smooth low sub presence."},
+            {"freq":62,"type":"bell","gain_db":1.5,"q":1.0,"rationale":"warm bass support."},
+            {"freq":125,"type":"bell","gain_db":-1.0,"q":1.6,"rationale":"tame muddiness under vocal."},
+            {"freq":250,"type":"bell","gain_db":-0.6,"q":1.6,"rationale":"clarity in instrumental mids."},
+            {"freq":500,"type":"bell","gain_db":0.6,"q":1.6,"rationale":"richness."},
+            {"freq":1000,"type":"bell","gain_db":0.8,"q":1.6,"rationale":"vocal presence."},
+            {"freq":2000,"type":"bell","gain_db":1.2,"q":1.4,"rationale":"consonant clarity."},
+            {"freq":4000,"type":"bell","gain_db":1.6,"q":1.4,"rationale":"breath/attack."},
+            {"freq":8000,"type":"bell","gain_db":1.8,"q":1.2,"rationale":"silk and air."},
+            {"freq":16000,"type":"high_shelf","gain_db":2.0,"q":"shelf","rationale":"sheen and polish."}
+          ]
+        },
+        "aggressive": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":5.0,"q":"shelf","rationale":"deep sub for modern R&B."},
+            {"freq":62,"type":"bell","gain_db":3.0,"q":0.9,"rationale":"warmth and weight."},
+            {"freq":125,"type":"bell","gain_db":-3.0,"q":1.6,"rationale":"remove low clouding."},
+            {"freq":250,"type":"bell","gain_db":-1.5,"q":1.8,"rationale":"clean up midrange."},
+            {"freq":500,"type":"bell","gain_db":2.0,"q":1.6,"rationale":"lushness for lead vocals."},
+            {"freq":1000,"type":"bell","gain_db":2.0,"q":1.6,"rationale":"forward vocal placement."},
+            {"freq":2000,"type":"bell","gain_db":2.5,"q":1.2,"rationale":"articulation."},
+            {"freq":4000,"type":"bell","gain_db":3.0,"q":1.2,"rationale":"presence/clarity."},
+            {"freq":8000,"type":"bell","gain_db":3.5,"q":1.0,"rationale":"detailed air."},
+            {"freq":16000,"type":"high_shelf","gain_db":4.0,"q":"shelf","rationale":"bright polish for streaming."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "K-Pop",
+      "variants": {
+        "conservative": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":2.0,"q":"shelf","rationale":"controlled low for dance/pop hybrid."},
+            {"freq":62,"type":"bell","gain_db":1.5,"q":1.0,"rationale":"sub presence for modern production."},
+            {"freq":125,"type":"bell","gain_db":-1.2,"q":1.6,"rationale":"reduce muddiness from layered instruments."},
+            {"freq":250,"type":"bell","gain_db":-0.8,"q":1.6,"rationale":"cleans dense midrange."},
+            {"freq":500,"type":"bell","gain_db":0.5,"q":1.6,"rationale":"body for vocals."},
+            {"freq":1000,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"lead vocal clarity."},
+            {"freq":2000,"type":"bell","gain_db":1.8,"q":1.4,"rationale":"articulation/projection."},
+            {"freq":4000,"type":"bell","gain_db":2.0,"q":1.4,"rationale":"forward presence."},
+            {"freq":8000,"type":"bell","gain_db":2.2,"q":1.0,"rationale":"sparkle for hooks."},
+            {"freq":16000,"type":"high_shelf","gain_db":2.5,"q":"shelf","rationale":"bright sheen for streaming."}
+          ]
+        },
+        "aggressive": {
+          "bands":[
+            {"freq":31,"type":"low_shelf","gain_db":5.0,"q":"shelf","rationale":"modern commercial low-end."},
+            {"freq":62,"type":"bell","gain_db":3.5,"q":0.9,"rationale":"emphasized sub/punch."},
+            {"freq":125,"type":"bell","gain_db":-3.0,"q":1.8,"rationale":"clear stacked elements."},
+            {"freq":250,"type":"bell","gain_db":-2.0,"q":1.8,"rationale":"midrange separation."},
+            {"freq":500,"type":"bell","gain_db":1.8,"q":1.6,"rationale":"warmth for vocal leads."},
+            {"freq":1000,"type":"bell","gain_db":2.0,"q":1.6,"rationale":"forward vocal."},
+            {"freq":2000,"type":"bell","gain_db":3.0,"q":1.2,"rationale":"clarity."},
+            {"freq":4000,"type":"bell","gain_db":3.5,"q":1.2,"rationale":"presence and edge."},
+            {"freq":8000,"type":"bell","gain_db":4.0,"q":1.0,"rationale":"bright hooks."},
+            {"freq":16000,"type":"high_shelf","gain_db":4.5,"q":"shelf","rationale":"glossy top for streaming."}
+          ]
+        }
+      }
+    },
+    {
+      "genre": "Lo-fi",
+      "variants": {
+        "conservative": {
+          "bands":[
+            {"freq":31,"type":"low_cut","gain_db":0,"q":"cut@40-60Hz slope12dB/oct","rationale":"remove rumble, lo-fi often lacks sub focus."},
+            {"freq":62,"type":"bell","gain_db":0.8,"q":1.2,"rationale":"gentle warmth."},
+            {"freq":125,"type":"bell","gain_db":-1.0,"q":1.6,"rationale":"dulls boxy low-mid for intimate textures."},
+            {"freq":250,"type":"bell","gain_db":-0.5,"q":1.6,"rationale":"clarity for lo-fi instruments."},
+            {"freq":500,"type":"bell","gain_db":0.2,"q":1.6,"rationale":"preserves body."},
+            {"freq":1000,"type":"bell","gain_db":0.3,"q":1.6,"rationale":"subtle presence."},
+            {"freq":2000,"type":"bell","gain_db":-0.5,"q":1.6,"rationale":"smooths harshness from lo-fi processing."},
+            {"freq":4000,"type":"bell","gain_db":-0.2,"q":1.6,"rationale":"reduces brittle highs."},
+            {"freq":8000,"type":"bell","gain_db":0.5,"q":1.2,"rationale":"adds gentle air."},
+            {"freq":16000,"type":"high_shelf","gain_db":0.5,"q":"shelf","rationale":"small top-end sheen."}
+          ]
+        },
+        "aggressive": {
+          "bands":[
+            {"freq":31,"type":"low_cut","gain_db":0,"q":"cut@60-100Hz slope12-18dB/oct","rationale":"characterful roll-off, vintage vibe."},
+            {"freq":62,"type":"bell","gain_db":2.0,"q":1.0,"rationale":"warm low-mid emphasis."},
+            {"freq":125,"type":"bell","gain_db":-3.0,"q":1.8,"rationale":"remove muddiness from tape emulation."},
+            {"freq":250,"type":"bell","gain_db":-2.0,"q":1.8,"rationale":"clean mid clutter."},
+            {"freq":500,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"adds body for lo-fi beats."},
+            {"freq":1000,"type":"bell","gain_db":1.0,"q":1.6,"rationale":"presence for samples."},
+            {"freq":2000,"type":"bell","gain_db":-1.5,"q":1.8,"rationale":"tame harshness from processed samples."},
+            {"freq":4000,"type":"bell","gain_db":-1.0,"q":1.6,"rationale":"smoother top."},
+            {"freq":8000,"type":"bell","gain_db":1.5,"q":1.0,"rationale":"soft air."},
+            {"freq":16000,"type":"high_shelf","gain_db":2.0,"q":"shelf","rationale":"gentle sparkle if desired."}
+          ]
+        }
+      }
+    }
+  ],
+  "global_notes": {
+    "shelving_vs_bell":"Use shelves for broad tonal shaping (sub/air), bells for targeted correction or tonal moves.",
+    "dynamic_eq_use":"Prefer dynamic EQ when problematic frequencies are intermittent (sibilance, occasional boom).",
+    "live_vs_studio":"Live needs conservative boosts, feedback control; studio allows surgical correction and finishing.",
+    "monitoring":"A/B with references at multiple volumes; check mono, use room correction/measurement, and test on consumer systems.",
+    "lufs_guidance":{
+      "pop_edm_hiphop_kpop_rnb_metal":"~ -8 to -12 LUFS integrated (modern commercial).",
+      "rock":"~ -9 to -12 LUFS integrated.",
+      "classical_jazz_lofi":"~ -14 to -20 LUFS integrated (preserve dynamics).",
+      "note":"Streaming normalization varies (many platforms ~ -14 LUFS). Prefer dynamics over extreme loudness."
+    }
+  }
+}
+```
+
+---

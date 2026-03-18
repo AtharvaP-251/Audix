@@ -51,33 +51,10 @@ class GenreDetector(private val songCacheDao: SongCacheDao) {
         }
 
         val prompt = """
-            You are a music genre classifier.
-
-            Your task is to classify a song into exactly ONE genre from the list below, based on the song title and artist.
-
-            Genres:
-            Rock
-            Pop
-            Hip-Hop
-            Classical
-            Jazz
-            Electronic (EDM)
-            Metal
-            R&B (Rhythm & Blues)
-            Lo-fi
-
-            Rules:
-            - Return ONLY one genre from the list
-            - Do not explain your answer
-            - Do not return multiple genres
-            - Choose the closest matching genre
-
-            Input:
-            Song Title: $title
-            Artist: $artist
-
-            Output:
-            <one genre only>
+            Classify song. One genre only: {Rock,Pop,Hip-Hop,Classical,Jazz,Electronic (EDM),Metal,R&B,Lo-fi}
+            Return only the genre.
+            Title:$title
+            Artist:$artist
         """.trimIndent()
 
         val request = GeminiRequest(

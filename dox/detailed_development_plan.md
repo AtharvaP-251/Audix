@@ -75,9 +75,9 @@ Avoid repetitive API calls for the same song to save costs and reduce latency.
 Automatically apply the correct EQ settings based on the recognized genre.
 
 ### Tasks
-- [ ] **[Manual Intervention Required]** Define scientifically sound EQ presets (band values) for required genres (Rock, Pop, Jazz, etc.) by manually evaluating them against different tracks.
-- [ ] Map dynamically received genres to predefined `EQPreset` objects.
-- [ ] Hook the genre-detection event to the EQ application logically.
+- [x] **[Manual Intervention Required]** Define scientifically sound EQ presets (band values) for required genres (Rock, Pop, Jazz, etc.) by manually evaluating them against different tracks.
+- [x] Map dynamically received genres to predefined `EQPreset` objects.
+- [x] Hook the genre-detection event to the EQ application logically.
 
 ---
 

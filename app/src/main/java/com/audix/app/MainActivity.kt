@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,6 +38,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.audix.app.audio.EqEngine
+import com.audix.app.audio.EQPresetLibrary
 import androidx.room.Room
 import com.audix.app.data.AppDatabase
 import com.audix.app.domain.GenreDetector
@@ -78,6 +82,7 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, modifier: Modif
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var isBassBoostEnabled by remember { mutableStateOf(false) }
+    var isAutoEqEnabled by remember { mutableStateOf(true) }
     var isPermissionGranted by remember {
         mutableStateOf(NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName))
     }
@@ -98,14 +103,23 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, modifier: Modif
     val currentSong by SongState.currentSong.collectAsState()
     val isServiceConnected by SongState.isServiceConnected.collectAsState()
 
-    LaunchedEffect(currentSong) {
+    LaunchedEffect(currentSong, isAutoEqEnabled) {
         val song = currentSong
         if (song != null && song.genre == null) {
             val detectedGenre = genreDetector.detectGenre(song.title, song.artist)
             if (detectedGenre != null) {
                 if (SongState.currentSong.value?.title == song.title) {
                     SongState.currentSong.value = song.copy(genre = detectedGenre)
+                    val preset = EQPresetLibrary.getPresetForGenre(detectedGenre)
+                    if (preset != null && isAutoEqEnabled) {
+                        eqEngine.applyPreset(preset)
+                    }
                 }
+            }
+        } else if (song != null && song.genre != null) {
+            val preset = EQPresetLibrary.getPresetForGenre(song.genre!!)
+            if (preset != null && isAutoEqEnabled) {
+                eqEngine.applyPreset(preset)
             }
         }
     }
@@ -193,12 +207,39 @@ fun EqControls(eqEngine: EqEngine, genreDetector: GenreDetector, modifier: Modif
             Spacer(modifier = Modifier.height(32.dp))
         }
 
-        Text(text = "Audix Basic EQ Engine", style = MaterialTheme.typography.titleLarge)
+        Text(text = "Audix EQ Engine", style = MaterialTheme.typography.titleLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Auto EQ (Apply genre presets)")
+            Spacer(modifier = Modifier.width(8.dp))
+            Switch(
+                checked = isAutoEqEnabled,
+                onCheckedChange = { 
+                    isAutoEqEnabled = it 
+                    if (it) {
+                        if (currentSong?.genre != null) {
+                            val preset = EQPresetLibrary.getPresetForGenre(currentSong!!.genre!!)
+                            if (preset != null) {
+                                eqEngine.applyPreset(preset)
+                                isBassBoostEnabled = false // Auto EQ overrides Bass Boost
+                            }
+                        }
+                    } else {
+                        if (!isBassBoostEnabled) {
+                            eqEngine.setEnabled(false)
+                        }
+                    }
+                }
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
                 val newState = !isBassBoostEnabled
                 isBassBoostEnabled = newState
+                if (newState) {
+                    isAutoEqEnabled = false // Bass Boost overrides Auto EQ
+                }
                 eqEngine.toggleBassBoost(newState)
             }
         ) {
