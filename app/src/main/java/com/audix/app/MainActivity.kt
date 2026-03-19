@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -115,181 +116,94 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
 
     var showSettingsDialog by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier) {
-        // Main Content
+    Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .padding(top = 48.dp, bottom = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (!isPermissionGranted) {
-                Text(
-                    text = "Audix requires Notification Access to detect playing songs. Please enable it in Settings.",
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                    context.startActivity(intent)
-                }) {
-                    Text("Grant Notification Access")
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-            } else if (!isServiceConnected) {
-                Text(
-                    text = "Service is disconnected. Please toggle Notification Access OFF and ON again in Settings.",
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                    context.startActivity(intent)
-                }) {
-                    Text("Open Settings")
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-            } else {
-                if (currentSong != null) {
-                    Text(
-                        text = "Now Playing:\n${currentSong!!.title}\nby ${currentSong!!.artist}",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    
-                    if (currentSong!!.genre != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
+            if (!isPermissionGranted || !isServiceConnected) {
+                // Permission Warning Header
+                androidx.compose.material3.Card(
+                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Detected Genre: ${currentSong!!.genre}",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center
+                            text = if (!isPermissionGranted) "Notification Access Required" else "Service Disconnected",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.titleMedium
                         )
-                    } else {
-                        var showDetecting by remember { mutableStateOf(false) }
-                        LaunchedEffect(currentSong!!.title) {
-                            kotlinx.coroutines.delay(150)
-                            showDetecting = true
-                        }
-                        if (showDetecting) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Detecting genre...",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center
-                            )
-                        } else {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = " ",
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center
-                            )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = {
+                            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                        }) {
+                            Text("Open Settings")
                         }
                     }
-                } else {
-                    Text(
-                        text = "No song detected yet.\nPlay music in Spotify or YouTube Music.",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
                 }
-                Spacer(modifier = Modifier.height(32.dp))
             }
 
-            Text(text = "Audix EQ Engine", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(16.dp))
+            // 1. Hero Section
+            val isPlaying = currentSong != null
+            val title = currentSong?.title ?: "No Song Detected"
+            val artist = currentSong?.artist ?: "Play music in Spotify or YouTube Music"
+            val genre = currentSong?.genre
             
-            Text(text = "EQ Intensity: ${(eqIntensityPosition * 100).toInt()}%")
-            androidx.compose.material3.Slider(
-                value = eqIntensityPosition,
-                onValueChange = { newValue -> eqIntensityPosition = newValue },
-                onValueChangeFinished = { coroutineScope.launch { userPreferencesRepository.saveEqIntensity(eqIntensityPosition) } },
-                valueRange = 0f..1f,
-                steps = 9,
-                modifier = Modifier.padding(horizontal = 32.dp)
+            com.audix.app.ui.components.HeroSection(
+                title = title,
+                artist = artist,
+                genre = genre,
+                isPlaying = isPlaying,
+                modifier = Modifier.padding(vertical = 24.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Auto EQ (Apply genre presets)")
-                Spacer(modifier = Modifier.width(8.dp))
-                Switch(
-                    checked = isAutoEqEnabled,
-                    onCheckedChange = { 
-                        isAutoEqEnabled = it
-                        coroutineScope.launch {
-                            userPreferencesRepository.saveAutoEqEnabled(it)
-                            if (it) { // If Auto EQ turned on, ensure custom tuning turns off.
-                                userPreferencesRepository.saveCustomTuningEnabled(false)
-                            }
-                        }
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 2. Primary Card: Auto EQ
+            com.audix.app.ui.components.EqEngineCard(
+                isAutoEqEnabled = isAutoEqEnabled,
+                onAutoEqChange = { 
+                    isAutoEqEnabled = it
+                    coroutineScope.launch {
+                        userPreferencesRepository.saveAutoEqEnabled(it)
+                        if (it) userPreferencesRepository.saveCustomTuningEnabled(false)
                     }
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+                },
+                eqIntensity = eqIntensityPosition,
+                onIntensityChange = { eqIntensityPosition = it },
+                onIntensityChangeFinished = { coroutineScope.launch { userPreferencesRepository.saveEqIntensity(eqIntensityPosition) } },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Custom Tuning (-5 to 5)")
-                Spacer(modifier = Modifier.width(8.dp))
-                Switch(
-                    checked = isCustomTuningEnabled,
-                    onCheckedChange = { 
-                        isCustomTuningEnabled = it
-                        coroutineScope.launch {
-                            userPreferencesRepository.saveCustomTuningEnabled(it)
-                            if (it) { // If custom tuning turned on, ensure Auto EQ turns off.
-                                userPreferencesRepository.saveAutoEqEnabled(false)
-                            }
-                        }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 3. Secondary Card: Custom Tuning
+            com.audix.app.ui.components.CustomTuningCard(
+                isCustomTuningEnabled = isCustomTuningEnabled,
+                onCustomTuningChange = {
+                    isCustomTuningEnabled = it
+                    coroutineScope.launch {
+                        userPreferencesRepository.saveCustomTuningEnabled(it)
+                        if (it) userPreferencesRepository.saveAutoEqEnabled(false)
                     }
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val tuningColor = if (isCustomTuningEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-
-            val bassVal = kotlin.math.round(customBassPosition).toInt()
-            Text(text = "Bass: ${if (bassVal > 0) "+" else ""}$bassVal", color = tuningColor)
-            androidx.compose.material3.Slider(
-                value = customBassPosition,
-                onValueChange = { newValue -> customBassPosition = kotlin.math.round(newValue) },
-                onValueChangeFinished = { coroutineScope.launch { userPreferencesRepository.saveCustomBass(customBassPosition) } },
-                valueRange = -5f..5f,
-                steps = 9,
-                enabled = isCustomTuningEnabled,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            )
-
-            val vocalsVal = kotlin.math.round(customVocalsPosition).toInt()
-            Text(text = "Vocals: ${if (vocalsVal > 0) "+" else ""}$vocalsVal", color = tuningColor)
-            androidx.compose.material3.Slider(
-                value = customVocalsPosition,
-                onValueChange = { newValue -> customVocalsPosition = kotlin.math.round(newValue) },
-                onValueChangeFinished = { coroutineScope.launch { userPreferencesRepository.saveCustomVocals(customVocalsPosition) } },
-                valueRange = -5f..5f,
-                steps = 9,
-                enabled = isCustomTuningEnabled,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            )
-
-            val trebleVal = kotlin.math.round(customTreblePosition).toInt()
-            Text(text = "Treble: ${if (trebleVal > 0) "+" else ""}$trebleVal", color = tuningColor)
-            androidx.compose.material3.Slider(
-                value = customTreblePosition,
-                onValueChange = { newValue -> customTreblePosition = kotlin.math.round(newValue) },
-                onValueChangeFinished = { coroutineScope.launch { userPreferencesRepository.saveCustomTreble(customTreblePosition) } },
-                valueRange = -5f..5f,
-                steps = 9,
-                enabled = isCustomTuningEnabled,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                },
+                customBass = customBassPosition,
+                onCustomBassChange = { customBassPosition = it },
+                onCustomBassChangeFinished = { coroutineScope.launch { userPreferencesRepository.saveCustomBass(customBassPosition) } },
+                customVocals = customVocalsPosition,
+                onCustomVocalsChange = { customVocalsPosition = it },
+                onCustomVocalsChangeFinished = { coroutineScope.launch { userPreferencesRepository.saveCustomVocals(customVocalsPosition) } },
+                customTreble = customTreblePosition,
+                onCustomTrebleChange = { customTreblePosition = it },
+                onCustomTrebleChangeFinished = { coroutineScope.launch { userPreferencesRepository.saveCustomTreble(customTreblePosition) } },
+                modifier = Modifier.fillMaxWidth()
             )
             
-            Spacer(modifier = Modifier.height(64.dp)) // padding for bottom icon
+            Spacer(modifier = Modifier.height(80.dp)) // padding for bottom icon
         }
 
         // Settings Icon (Bottom Left)
@@ -297,7 +211,7 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
             onClick = { showSettingsDialog = true },
             modifier = Modifier.align(Alignment.BottomStart).padding(16.dp)
         ) {
-            Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 

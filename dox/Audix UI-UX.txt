@@ -1,0 +1,340 @@
+---
+
+🎧 Audix EQ — Refined Landing Experience
+
+follows system theme dark/light mode
+
+🎨 1. Visual System (Polished Rules)
+
+Instead of just “dark + glow”, define it like a system:
+
+Background
+
+Deep charcoal (not pure black) → avoids flatness
+
+Subtle radial gradient behind vinyl (focus anchor)
+
+
+Cards
+
+Layer 1: base dark gray
+
+Layer 2: glass overlay (very light blur, low opacity)
+
+Border: 1px soft inner highlight (premium trick)
+
+
+Accent (VERY IMPORTANT)
+
+Warm red = state color, not decoration
+
+Only appears when:
+
+AutoEQ is ON
+
+Active sliders
+
+Audio-reactive glow
+
+
+
+👉 This restraint = premium feel
+
+
+---
+
+🧩 2. Hero Section (Make it Feel Alive)
+
+Layout (Refined)
+
+[ VINYL ]
+   (soft glow + depth)
+
+ ~ waveform      waveform ~
+
+Now Playing
+Track Name
+Artist Name
+
+[ GENRE PILL ]
+
+Improvements (Next-Level)
+
+Vinyl
+
+Add parallax tilt on touch (tiny, but premium)
+
+Rotation speed adapts:
+
+paused → stops
+
+playing → smooth
+
+
+
+Glow System
+
+Not constant → breath + beat sync
+
+Glow intensity tied to:
+
+bass → stronger pulse
+
+
+
+Waveforms
+
+Don’t mirror exactly → slight asymmetry = more organic
+
+
+Genre Pill (Upgrade this)
+
+Bigger, slightly elevated
+
+Subtle glow tint based on genre
+
+
+👉 This becomes your AI identity anchor
+
+
+---
+
+⚡ 3. EQ Engine Card (Refined Interaction Model)
+
+You’re very close — this is the cleanest version:
+
+Collapsed Card
+
+[ 🎛 Icon ]   Audix EQ Engine     |   [ ON ]
+
+Key Refinements
+
+1. Remove “AutoEQ / Custom” from same row → It creates cognitive conflict
+
+👉 Replace with:
+
+Primary card = AutoEQ
+
+Custom becomes secondary card below
+
+
+
+---
+
+Final Structure:
+
+Card 1: AutoEQ (Primary)
+
+Audix EQ Engine		|    ON
+
+
+Card 2: Custom Tuning (Secondary)
+
+Custom Tuning		|    OFF
+
+
+👉 This creates:
+
+Clear hierarchy
+
+No competing systems
+
+
+
+---
+
+🪄 4. Expanded AutoEQ (Where Premium Happens)
+
+Layout
+
+AutoEQ — Hip-Hop
+
+[ Animated Curve Graph ]
+
+Strength
+[ --------●------ ]  70%
+
+
+---
+
+📈 Graph Behavior (Refined for “Wow”)
+
+This is your signature interaction.
+
+Animation Rules:
+
+On Open
+
+Curve animates:
+
+flat → overshoot → settle (spring feel)
+
+
+
+On Slider Move
+
+Curve scales non-linearly
+
+first 30% = subtle change
+
+last 30% = dramatic
+
+
+
+👉 Feels more “intelligent” than linear scaling
+
+
+---
+
+Advanced Polish (🔥)
+
+Add gradient stroke on curve
+
+low = soft gray
+
+high = accent glow
+
+
+Add tiny moving particles on curve
+
+reacts to audio peaks
+
+
+
+
+---
+
+🎚 5. Custom Tuning (Cleaner + Smarter)
+
+Collapsed
+
+Custom Tuning		|   OFF
+
+
+---
+
+Expanded
+
+Instead of basic sliders → refine grouping:
+
+Bass        |----●-----|
+Vocals      |----●-----|
+Treble      |----●-----|
+
+
+
+👉 Feels less technical, more musical
+
+
+
+
+👉 Rule: If user never opens settings, UX is successful
+
+
+---
+
+🌊 8. Micro-Interactions (Refined System)
+
+Don’t just “add animations” — define behavior:
+
+Motion Language
+
+Use spring animations everywhere
+
+Duration: 200–350ms
+
+No linear easing
+
+
+
+---
+
+Must-have Interactions
+
+Card Expand
+
+Slide up + fade + background blur increase
+
+
+Toggle
+
+Soft snap + glow activation
+
+
+Slider
+
+Slight elastic drag
+
+Thumb emits subtle glow when active
+
+
+Vinyl
+
+Rotation + light reflection shift
+
+
+
+---
+
+🧠 9. Final Mental Model (Ultra Clear)
+
+Surface Level (Zero Thinking Required)
+
+Music is playing
+
+App detects genre
+
+AutoEQ is ON
+
+Sound is optimized
+
+
+
+---
+
+Interaction Level
+
+Tap AutoEQ → adjust intensity
+
+Tap Custom → take control
+
+
+
+---
+
+Emotional Layer
+
+App feels:
+
+responsive
+
+intelligent
+
+alive
+
+
+
+---
+
+🚀 Final Result
+
+This version achieves:
+
+Clarity → no competing controls
+
+Hierarchy → AutoEQ first, Custom second
+
+Feedback → graph + glow + motion
+
+Emotion → music-driven UI
+
+
+👉 It no longer feels like an EQ tool
+👉 It feels like a smart audio engine
+
+
+---
+
+
+Turn this into a Figma component system (with spacing + tokens)
+Or I can help you translate this into Jetpack Compose UI structure + animations
