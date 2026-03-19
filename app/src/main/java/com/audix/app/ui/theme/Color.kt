@@ -6,6 +6,7 @@ val DeepCharcoalBackground = Color(0xFF141414)
 val CharcoalCard = Color(0xFF222222)
 val SoftWhiteBackground = Color(0xFFF5F5F7)
 val WhiteCard = Color(0xFFFFFFFF)
+val LightSurfaceText = Color(0xFF1C1C1E).copy(alpha = 0.85f)
 
 val WarmRedAccent = Color(0xFFE53935)
 val WarmRedAccentLight = Color(0xFFFF5E5A)

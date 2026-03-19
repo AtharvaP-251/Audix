@@ -58,10 +58,13 @@ class SongDetectionService : NotificationListenerService() {
         if (token != null) {
             var title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim() ?: ""
             var artist = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.trim() ?: ""
+            var isPlaying = false
 
             try {
                 val mediaController = android.media.session.MediaController(applicationContext, token)
                 val metadata = mediaController.metadata
+                isPlaying = mediaController.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING
+
                 if (metadata != null) {
                     val mediaTitle = metadata.getString(android.media.MediaMetadata.METADATA_KEY_TITLE)
                     val mediaArtist = metadata.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST)
@@ -71,6 +74,8 @@ class SongDetectionService : NotificationListenerService() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error extracting media metadata", e)
             }
+
+            SongState.isPlaying.value = isPlaying
 
             if (title.isNotEmpty() && title != "null") {
                 val current = SongState.currentSong.value

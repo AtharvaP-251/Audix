@@ -51,7 +51,7 @@ class UserPreferencesRepository(private val context: Context) {
 
     val autoEqEnabledFlow: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
-            preferences[AUTO_EQ_ENABLED] ?: true
+            preferences[AUTO_EQ_ENABLED] ?: false
         }
 
     suspend fun saveEqIntensity(intensity: Float) {

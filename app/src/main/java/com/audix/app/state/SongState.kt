@@ -11,5 +11,6 @@ data class SongInfo(
 
 object SongState {
     val currentSong = MutableStateFlow<SongInfo?>(null)
+    val isPlaying = MutableStateFlow(false)
     val isServiceConnected = MutableStateFlow(false)
 }

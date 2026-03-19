@@ -1,16 +1,20 @@
 package com.audix.app.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -25,11 +29,13 @@ fun EqEngineCard(
     onIntensityChangeFinished: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Track whether this is the first composition to skip the initial animation
+    var isFirstComposition by remember { mutableStateOf(true) }
+
     AudixCard(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .animateContentSize(animationSpec = spring())
                 .padding(24.dp)
         ) {
             Row(
@@ -38,25 +44,49 @@ fun EqEngineCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Auto EQ",
-                        tint = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    AudixEqLogo(
+                        color = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "Audix EQ Engine",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
                 AudixSwitch(
                     checked = isAutoEqEnabled,
-                    onCheckedChange = onAutoEqChange
+                    onCheckedChange = { newValue ->
+                        isFirstComposition = false
+                        onAutoEqChange(newValue)
+                    }
                 )
             }
 
-            AnimatedVisibility(visible = isAutoEqEnabled) {
+            // Use AnimatedVisibility so the content animates in/out properly
+            // Skip animation on first composition to prevent phantom "close" animation on app open
+            AnimatedVisibility(
+                visible = isAutoEqEnabled,
+                enter = if (isFirstComposition) {
+                    // No animation on initial render — just appear instantly
+                    fadeIn(animationSpec = spring(stiffness = Spring.StiffnessHigh)) +
+                    expandVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh))
+                } else {
+                    fadeIn(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ) + expandVertically(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                },
+                exit = fadeOut() + shrinkVertically()
+            ) {
                 Column(modifier = Modifier.padding(top = 24.dp)) {
                     AudixInnerCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -66,15 +96,8 @@ fun EqEngineCard(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.AddCircle,
-                                        contentDescription = "Intensity",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "EQ Intensity",
+                                        text = "AutoEQ Intensity",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )

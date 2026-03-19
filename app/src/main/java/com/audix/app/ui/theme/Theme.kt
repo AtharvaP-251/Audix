@@ -31,10 +31,10 @@ private val LightColorScheme = lightColorScheme(
     background = SoftWhiteBackground,
     surface = WhiteCard,
     onPrimary = Color.White,
-    onBackground = Color.Black,
-    onSurface = Color.Black,
+    onBackground = LightSurfaceText,
+    onSurface = LightSurfaceText,
     surfaceVariant = SoftWhiteBackground,
-    onSurfaceVariant = Color.DarkGray
+    onSurfaceVariant = Color.DarkGray.copy(alpha = 0.7f)
 )
 
 @Composable

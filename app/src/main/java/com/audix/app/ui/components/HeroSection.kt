@@ -1,24 +1,24 @@
 package com.audix.app.ui.components
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.audix.app.R
 
 @Composable
 fun HeroSection(
@@ -26,6 +26,7 @@ fun HeroSection(
     artist: String,
     genre: String?,
     isPlaying: Boolean,
+    isAutoEqEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -39,7 +40,7 @@ fun HeroSection(
             modifier = Modifier.fillMaxWidth().height(160.dp)
         ) {
             AnimatedWaveform(isPlaying = isPlaying, modifier = Modifier.weight(1f).height(60.dp))
-            VinylRecord(isPlaying = isPlaying, modifier = Modifier.size(160.dp))
+            VinylRecord(modifier = Modifier.size(160.dp))
             AnimatedWaveform(isPlaying = isPlaying, reverse = true, modifier = Modifier.weight(1f).height(60.dp))
         }
 
@@ -59,7 +60,7 @@ fun HeroSection(
             textAlign = TextAlign.Center
         )
         Text(
-            text = "by $artist",
+            text = if (isPlaying && artist.isNotBlank()) "by $artist" else artist,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -67,77 +68,68 @@ fun HeroSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (genre != null) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = "Detected: $genre",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+        // Always reserve space for the genre pill
+        Box(
+            modifier = Modifier.height(36.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (!isAutoEqEnabled) {
+                // AudixEQ is off — show greyed-out pill
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "AudixEQ Off",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            } else if (genre != null) {
+                // AudixEQ on + genre detected
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Genre: $genre",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
+            // else: AudixEQ on but no genre yet — space reserved, nothing shown
         }
     }
 }
 
 @Composable
-fun VinylRecord(isPlaying: Boolean, modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 4000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        )
-    )
-
-    val currentRotation = if (isPlaying) rotation else 0f
-
-    Canvas(modifier = modifier.rotate(currentRotation)) {
-        val center = Offset(size.width / 2, size.height / 2)
-        val radius = size.width / 2
-
-        // Base vinyl
-        drawCircle(
-            color = Color(0xFF111111),
-            radius = radius,
-            center = center
-        )
-
-        // Grooves
-        for (i in 1..4) {
-            drawCircle(
-                color = Color.White.copy(alpha = 0.05f),
-                radius = radius - (i * 12.dp.toPx()),
-                center = center,
-                style = Stroke(width = 1.dp.toPx())
-            )
-        }
-
-        // Center label
-        drawCircle(
-            color = Color(0xFFE53935), // Primary red hint
-            radius = radius * 0.3f,
-            center = center
-        )
-        // Center hole
-        drawCircle(
-            color = Color.Black,
-            radius = radius * 0.05f,
-            center = center
+fun VinylRecord(modifier: Modifier = Modifier) {
+    // Circular clip + scale up 1.25x to zoom into disc, hiding most of the white PNG background
+    Box(
+        modifier = modifier
+            .clip(CircleShape),
+        contentAlignment = androidx.compose.ui.Alignment.Center
+    ) {
+        androidx.compose.foundation.Image(
+            painter = painterResource(id = R.drawable.vinyl_logo),
+            contentDescription = "Vinyl Record",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize(1.25f)
+                .scale(1.25f)
         )
     }
 }
 
 @Composable
 fun AnimatedWaveform(isPlaying: Boolean, reverse: Boolean = false, modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition()
     // If playing, use these durations to animate
     val animationSpecs = if (reverse) listOf(350, 600, 400, 500, 300) else listOf(300, 500, 400, 600, 350)
 
@@ -147,19 +139,23 @@ fun AnimatedWaveform(isPlaying: Boolean, reverse: Boolean = false, modifier: Mod
         verticalAlignment = Alignment.CenterVertically
     ) {
         for (i in 0 until 5) {
-            val scale by infiniteTransition.animateFloat(
-                initialValue = 0.2f,
-                targetValue = if (isPlaying) 1f else 0.2f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = animationSpecs[i], easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse
-                )
-            )
+            val scale = remember { Animatable(0.2f) }
+            
+            androidx.compose.runtime.LaunchedEffect(isPlaying) {
+                if (isPlaying) {
+                    while (true) {
+                        scale.animateTo(1f, tween(durationMillis = animationSpecs[i], easing = FastOutSlowInEasing))
+                        scale.animateTo(0.2f, tween(durationMillis = animationSpecs[i], easing = FastOutSlowInEasing))
+                    }
+                } else {
+                    scale.animateTo(0.2f, tween(300))
+                }
+            }
             
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .fillMaxHeight(scale)
+                    .fillMaxHeight(scale.value)
                     .clip(RoundedCornerShape(2.dp))
                     .background(MaterialTheme.colorScheme.primary)
             )

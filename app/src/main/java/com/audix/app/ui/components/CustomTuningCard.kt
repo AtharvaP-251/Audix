@@ -1,11 +1,10 @@
 package com.audix.app.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,7 +33,10 @@ fun CustomTuningCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .animateContentSize(animationSpec = spring())
+                .animateContentSize(animationSpec = spring(
+                    dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
+                    stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+                ))
                 .padding(24.dp)
         ) {
             Row(
@@ -44,7 +46,7 @@ fun CustomTuningCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.Edit,
+                        imageVector = Icons.Default.Settings,
                         contentDescription = "Custom Tuning",
                         tint = if (isCustomTuningEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -52,7 +54,7 @@ fun CustomTuningCard(
                     Text(
                         text = "Custom Tuning",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
                 AudixSwitch(
@@ -61,28 +63,32 @@ fun CustomTuningCard(
                 )
             }
 
-            AnimatedVisibility(visible = isCustomTuningEnabled) {
+            if (isCustomTuningEnabled) {
                 Column(modifier = Modifier.padding(top = 24.dp)) {
-                    TuningRow(
-                        label = "Bass",
-                        value = customBass,
-                        onValueChange = onCustomBassChange,
-                        onValueChangeFinished = onCustomBassChangeFinished
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    TuningRow(
-                        label = "Vocals",
-                        value = customVocals,
-                        onValueChange = onCustomVocalsChange,
-                        onValueChangeFinished = onCustomVocalsChangeFinished
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    TuningRow(
-                        label = "Treble",
-                        value = customTreble,
-                        onValueChange = onCustomTrebleChange,
-                        onValueChangeFinished = onCustomTrebleChangeFinished
-                    )
+                    AudixInnerCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            TuningRow(
+                                label = "Bass",
+                                value = customBass,
+                                onValueChange = onCustomBassChange,
+                                onValueChangeFinished = onCustomBassChangeFinished
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            TuningRow(
+                                label = "Vocals",
+                                value = customVocals,
+                                onValueChange = onCustomVocalsChange,
+                                onValueChangeFinished = onCustomVocalsChangeFinished
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            TuningRow(
+                                label = "Treble",
+                                value = customTreble,
+                                onValueChange = onCustomTrebleChange,
+                                onValueChangeFinished = onCustomTrebleChangeFinished
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -122,6 +128,7 @@ private fun TuningRow(
             onValueChangeFinished = onValueChangeFinished,
             valueRange = -5f..5f,
             steps = 9,
+            isBipolar = true,
             modifier = Modifier.fillMaxWidth()
         )
     }
