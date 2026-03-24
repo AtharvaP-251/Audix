@@ -63,7 +63,8 @@ fun CustomTuningCard(
                     Text(
                         text = "Custom Tuning",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (isCustomTuningEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
 
                     // Reset button: always visible when custom tuning is enabled.

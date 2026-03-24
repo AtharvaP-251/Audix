@@ -68,12 +68,13 @@ fun AudixSlider(
                 )
             }
 
-            // Draw zero marker tick
+            // Draw distinct zero marker tick
+            val isZero = value == 0f
             drawLine(
-                color = inactiveColor,
-                start = Offset(zeroX, size.height / 2 - 4.dp.toPx()),
-                end = Offset(zeroX, size.height / 2 + 4.dp.toPx()),
-                strokeWidth = 2.dp.toPx(),
+                color = if (isZero) activeColor else inactiveColor.copy(alpha = 0.5f),
+                start = Offset(zeroX, size.height / 2 - if (isZero) 6.dp.toPx() else 4.dp.toPx()),
+                end = Offset(zeroX, size.height / 2 + if (isZero) 6.dp.toPx() else 4.dp.toPx()),
+                strokeWidth = if (isZero) 3.dp.toPx() else 2.dp.toPx(),
                 cap = StrokeCap.Round
             )
         }

@@ -52,7 +52,8 @@ fun EqEngineCard(
                     Text(
                         text = "Audix EQ Engine",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
                 AudixSwitch(

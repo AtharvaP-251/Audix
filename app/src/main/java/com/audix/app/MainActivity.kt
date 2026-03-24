@@ -23,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Info
@@ -44,6 +45,7 @@ import com.audix.app.data.UserPreferencesRepository
 import com.audix.app.service.AudioEngineServiceLocal
 import com.audix.app.state.SongState
 import com.audix.app.ui.theme.AudixTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -152,6 +154,18 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
         onDispose { cm.unregisterNetworkCallback(callback) }
     }
 
+    // Phase 12: Offline banner dismissal & auto-hide
+    var isOfflineBannerDismissed by remember { mutableStateOf(false) }
+    LaunchedEffect(isNetworkAvailable) {
+        if (isNetworkAvailable) {
+            isOfflineBannerDismissed = false
+        } else {
+            // Auto-hide after 5 seconds
+            delay(5000)
+            isOfflineBannerDismissed = true
+        }
+    }
+
     // Start foreground EQ service
     LaunchedEffect(Unit) {
         val startIntent = Intent(context, AudioEngineServiceLocal::class.java)
@@ -229,29 +243,6 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Phase 12: Offline banner
-            AnimatedVisibility(
-                visible = !isNetworkAvailable,
-                enter = slideInVertically() + fadeIn(),
-                exit = slideOutVertically() + fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.errorContainer)
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                ) {
-                    Text(
-                        text = "Offline — genre detection paused",
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
             if (!isPermissionGranted || !isServiceConnected) {
                 androidx.compose.material3.Card(
                     colors = androidx.compose.material3.CardDefaults.cardColors(
@@ -361,6 +352,45 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
                     modifier = Modifier.align(Alignment.BottomEnd)
                 ) {
                     Icon(Icons.Outlined.Info, contentDescription = "Info", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        // Phase 12: Offline banner overlay
+        AnimatedVisibility(
+            visible = !isNetworkAvailable && !isOfflineBannerDismissed,
+            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 48.dp, start = 16.dp, end = 16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Offline • Using Cached EQ",
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f).padding(start = 24.dp) // Left padding to balance the 'X' button
+                )
+                IconButton(
+                    onClick = { isOfflineBannerDismissed = true },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Dismiss",
+                        tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.6f),
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
         }
