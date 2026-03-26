@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -21,6 +22,8 @@ class UserPreferencesRepository(private val context: Context) {
         val CUSTOM_TREBLE = floatPreferencesKey("custom_treble")
         val AUTO_EQ_ENABLED = booleanPreferencesKey("auto_eq_enabled")
         val ONBOARDING_SHOWN = booleanPreferencesKey("onboarding_shown")
+        val SPATIAL_ENABLED = booleanPreferencesKey("spatial_enabled")
+        val SPATIAL_LEVEL   = intPreferencesKey("spatial_level")   // 0–5
     }
 
     val eqIntensityFlow: Flow<Float> = context.dataStore.data
@@ -44,6 +47,12 @@ class UserPreferencesRepository(private val context: Context) {
     /** True once the user has seen the first-launch onboarding screen. */
     val onboardingShownFlow: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[ONBOARDING_SHOWN] ?: false }
+
+    val spatialEnabledFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[SPATIAL_ENABLED] ?: false }
+
+    val spatialLevelFlow: Flow<Int> = context.dataStore.data
+        .map { preferences -> preferences[SPATIAL_LEVEL] ?: 3 }
 
     suspend fun saveEqIntensity(intensity: Float) {
         context.dataStore.edit { preferences -> preferences[EQ_INTENSITY] = intensity }
@@ -71,5 +80,13 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun saveOnboardingShown(shown: Boolean) {
         context.dataStore.edit { preferences -> preferences[ONBOARDING_SHOWN] = shown }
+    }
+
+    suspend fun saveSpatialEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences -> preferences[SPATIAL_ENABLED] = enabled }
+    }
+
+    suspend fun saveSpatialLevel(level: Int) {
+        context.dataStore.edit { preferences -> preferences[SPATIAL_LEVEL] = level }
     }
 }

@@ -133,6 +133,18 @@ open class AudioEngineServiceLocal : Service() {
         scope.launch {
             userPreferencesRepository.customTrebleFlow.collect { eqEngine.customTreble = it }
         }
+        scope.launch {
+            userPreferencesRepository.spatialEnabledFlow.collect {
+                eqEngine.isSpatialEnabled = it
+                debouncedForceReapply()
+            }
+        }
+        scope.launch {
+            userPreferencesRepository.spatialLevelFlow.collect {
+                eqEngine.spatialLevel = it
+                debouncedForceReapply()
+            }
+        }
     }
 
     /**
@@ -211,10 +223,25 @@ open class AudioEngineServiceLocal : Service() {
                 val preferences = withContext(Dispatchers.IO) {
                     val custom = userPreferencesRepository.customTuningEnabledFlow.first()
                     val auto = userPreferencesRepository.autoEqEnabledFlow.first()
-                    Pair(custom, auto)
+                    val spatial = userPreferencesRepository.spatialEnabledFlow.first()
+                    val level = userPreferencesRepository.spatialLevelFlow.first()
+                    Pair(Triple(custom, auto, spatial), level)
                 }
-                val isCustomTuning = preferences.first
-                val isAutoEq = preferences.second
+                val isCustomTuning = preferences.first.first
+                val isAutoEq = preferences.first.second
+                val isSpatial = preferences.first.third
+                val spatialLevel = preferences.second
+
+                // Sync spatial state to engine before any processing
+                eqEngine.isSpatialEnabled = isSpatial
+                eqEngine.spatialLevel = spatialLevel
+
+                // 1. Initial Engine State: If Spatial Audio is ON, we must enable the engine 
+                // IMMEDIATELY with a Flat base so Layer A/B can operate while detection runs.
+                if (isSpatial) {
+                    eqEngine.applyPreset(EQPreset("Flat", emptyMap()))
+                    eqEngine.setEnabled(true)
+                }
 
                 // Custom tuning overrides auto-EQ
                 if (isCustomTuning) {
@@ -226,9 +253,16 @@ open class AudioEngineServiceLocal : Service() {
 
                 if (!isAutoEq) {
                     if (jobId == lastJobId) SongState.isDetectingGenre.value = false
-                    eqEngine.applyPreset(EQPreset("Flat", emptyMap()))
-                    eqEngine.setEnabled(false)
-                    updateNotification("EQ Disabled", "$title by $artist")
+                    
+                    // If spatial is ON, we already applied Flat + Enable above.
+                    // If spatial is OFF, we must disable the engine.
+                    if (isSpatial) {
+                        updateNotification("Spatial Audio active", "$title by $artist")
+                    } else {
+                        eqEngine.applyPreset(EQPreset("Flat", emptyMap()))
+                        eqEngine.setEnabled(false)
+                        updateNotification("EQ Disabled", "$title by $artist")
+                    }
                     return@launch
                 }
 

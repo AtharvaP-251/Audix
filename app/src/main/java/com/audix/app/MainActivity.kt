@@ -123,6 +123,13 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
     val customTreblePref by userPreferencesRepository.customTrebleFlow.collectAsState(initial = 0.0f)
     var customTreblePosition by remember(customTreblePref) { mutableStateOf(customTreblePref) }
 
+    // Spatial Audio
+    val spatialEnabledPref by userPreferencesRepository.spatialEnabledFlow.collectAsState(initial = false)
+    var isSpatialEnabled by remember(spatialEnabledPref) { mutableStateOf(spatialEnabledPref) }
+
+    val spatialLevelPref by userPreferencesRepository.spatialLevelFlow.collectAsState(initial = 0)
+    var spatialLevelPosition by remember(spatialLevelPref) { mutableStateOf(spatialLevelPref) }
+
     // Phase 12: Onboarding
     val onboardingShown by userPreferencesRepository.onboardingShownFlow.collectAsState(initial = true)
     var showOnboarding by remember { mutableStateOf(false) }
@@ -297,6 +304,32 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
                 onIntensityChange = { eqIntensityPosition = it },
                 onIntensityChangeFinished = {
                     coroutineScope.launch { userPreferencesRepository.saveEqIntensity(eqIntensityPosition) }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 2b. Spatial Audio Card
+            com.audix.app.ui.components.SpatialAudioCard(
+                isSpatialEnabled = isSpatialEnabled,
+                onSpatialEnabledChange = { enabled ->
+                    isSpatialEnabled = enabled
+                    coroutineScope.launch {
+                        userPreferencesRepository.saveSpatialEnabled(enabled)
+                        // If turning ON and level is 0, default to 3 (Balanced)
+                        if (enabled && spatialLevelPosition == 0) {
+                            spatialLevelPosition = 3
+                            userPreferencesRepository.saveSpatialLevel(3)
+                        }
+                    }
+                },
+                spatialLevel = spatialLevelPosition,
+                onSpatialLevelChange = {
+                    spatialLevelPosition = it
+                    coroutineScope.launch {
+                        userPreferencesRepository.saveSpatialLevel(it)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             )

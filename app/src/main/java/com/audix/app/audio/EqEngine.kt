@@ -38,6 +38,16 @@ class EqEngine {
             if (isEnabled) reapplyCurrentEq()
         }
 
+    // --- Phase 4.1 — Spatial Audio state ---
+    var isSpatialEnabled: Boolean = false
+        set(value) { field = value; if (isEnabled || value) reapplyCurrentEq() }
+
+    var spatialLevel: Int = 0
+        set(value) { field = value; if (isEnabled || isSpatialEnabled) reapplyCurrentEq() }
+
+    // --- Phase 4.4 — SpatialEngine instance ---
+    private val spatialEngine = SpatialEngine()
+
     private var lastAppliedPreset: EQPreset? = null
 
     private fun reapplyCurrentEq() {
@@ -88,6 +98,9 @@ class EqEngine {
                 equalizer = null
             }
         }
+
+        // Phase 4.4 — initialise spatial engine alongside equalizer
+        spatialEngine.initialize()
     }
 
     fun applyPreset(preset: EQPreset) {
@@ -188,6 +201,15 @@ class EqEngine {
                     }
                 }
 
+                // Phase 4.2 — SPATIAL AUDIO LAYER: pinna notch + psychoacoustic coloring
+                // Applied after custom tuning, before clamp — per plan §4.2
+                if (isSpatialEnabled && spatialLevel > 0 && bandFreq > 0) {
+                    val profile = SpatialProfileLibrary.getProfile(spatialLevel)
+                    targetLevel = spatialEngine.applyPsychoacousticDelta(
+                        bandFreq, targetLevel, profile, minLevel, maxLevel
+                    )
+                }
+
                 // Clamp to the device's acceptable range
                 if (targetLevel < minLevel) targetLevel = minLevel.toInt()
                 if (targetLevel > maxLevel) targetLevel = maxLevel.toInt()
@@ -195,6 +217,15 @@ class EqEngine {
                 eq.setBandLevel(i.toShort(), targetLevel.toShort())
             }
         }
+
+        // Phase 4.3 — Apply reverb for levels 3–5; disable otherwise
+        if (isSpatialEnabled && spatialLevel >= 3) {
+            val profile = SpatialProfileLibrary.getProfile(spatialLevel)
+            spatialEngine.setReverb(true, profile.reverbPreset)
+        } else {
+            spatialEngine.setReverb(false, null)
+        }
+
         eq.enabled = true
         isEnabled = true
         Log.d("EqEngine", "Applied preset for genre: ${preset.genre}")
@@ -218,6 +249,8 @@ class EqEngine {
         }
         equalizer = null
         isEnabled = false
+        // Phase 4.4 — release spatial engine alongside equalizer
+        spatialEngine.release()
     }
 
     fun release() {
