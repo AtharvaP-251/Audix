@@ -13,9 +13,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.Canvas
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.foundation.Canvas
+import android.view.HapticFeedbackConstants
 
 @Composable
 fun AudixSlider(
@@ -28,7 +30,11 @@ fun AudixSlider(
     isBipolar: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+
+    val view = LocalView.current
     val activeColor = MaterialTheme.colorScheme.primary
+
+
     val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
 
     val bipolarModifier = if (isBipolar) {
@@ -82,8 +88,20 @@ fun AudixSlider(
 
     Slider(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = {
+            if (it != value) {
+                // Trigger haptic feedback for significant changes or just any change for a "tick" feel
+                // Specifically for bipolar sliders, tick at 0.
+                if (isBipolar && ((value < 0 && it >= 0) || (value > 0 && it <= 0))) {
+                    view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK) 
+                } else {
+                    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                }
+                onValueChange(it)
+            }
+        },
         onValueChangeFinished = onValueChangeFinished,
+
         valueRange = valueRange,
         steps = steps,
         enabled = enabled,
@@ -107,9 +125,15 @@ fun AudixSwitch(
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier
 ) {
+    val view = LocalView.current
     Switch(
         checked = checked,
-        onCheckedChange = onCheckedChange,
+        onCheckedChange = {
+            view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            onCheckedChange?.invoke(it)
+        },
+
+
         colors = SwitchDefaults.colors(
             checkedThumbColor = Color.White,
             checkedTrackColor = MaterialTheme.colorScheme.primary,

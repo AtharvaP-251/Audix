@@ -4,8 +4,8 @@ import androidx.compose.ui.graphics.Color
 
 val DeepCharcoalBackground = Color(0xFF141414)
 val CharcoalCard = Color(0xFF222222)
-val SoftWhiteBackground = Color(0xFFF5F5F7)
-val WhiteCard = Color(0xFFFFFFFF)
+val SoftWhiteBackground = Color(0xFFF5F2EC)
+val WhiteCard = Color(0xFFEAE6DF)
 val LightSurfaceText = Color(0xFF1C1C1E).copy(alpha = 0.85f)
 
 val WarmRedAccent = Color(0xFFE53935)

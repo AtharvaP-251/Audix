@@ -85,7 +85,7 @@ object SpatialProfileLibrary {
         SpatialProfile(
             level = 1,
             name = "Subtle",
-            description = "Natural width — gentle spectral widening",
+            description = "Subtly expands the soundstage for a more natural feel",
             primaryPinnaNotch  = -2.0f, // Doubled from -1.0
             secondaryPinnaNotch = -1.0f, // Doubled from -0.5
             torsoWarmth        =  1.0f, // Doubled from 0.5
@@ -97,7 +97,7 @@ object SpatialProfileLibrary {
         SpatialProfile(
             level = 2,
             name = "Light",
-            description = "Noticeable soundstage — music feels outside the head",
+            description = "Broadens the field to project sound beyond headphones",
             primaryPinnaNotch  = -4.0f, // Doubled from -2.0
             secondaryPinnaNotch = -2.0f, // Doubled from -1.0
             torsoWarmth        =  1.6f, // Doubled from 0.8
@@ -109,7 +109,7 @@ object SpatialProfileLibrary {
         SpatialProfile(
             level = 3,
             name = "Balanced",
-            description = "Classic spatial feel — recommended starting point",
+            description = "Perfectly balanced spatial depth for standard use",
             primaryPinnaNotch  = -5.5f, // Increased (was -3.0)
             secondaryPinnaNotch = -3.0f, // Increased (was -1.5)
             torsoWarmth        =  2.0f, // Increased (was 1.0)
@@ -121,7 +121,7 @@ object SpatialProfileLibrary {
         SpatialProfile(
             level = 4,
             name = "Strong",
-            description = "Deep immersion — clear external acoustic space",
+            description = "Intense immersion with a deep acoustic environment",
             primaryPinnaNotch  = -7.5f, // Increased (was -4.5)
             secondaryPinnaNotch = -4.5f, // Increased (was -2.5)
             torsoWarmth        =  2.5f, // Increased (was 1.2)
@@ -133,7 +133,7 @@ object SpatialProfileLibrary {
         SpatialProfile(
             level = 5,
             name = "Aggressive",
-            description = "Maximum depth — cinematic, grand soundscape",
+            description = "Maximum cinematic soundstage for total immersion",
             primaryPinnaNotch  = -10.0f, // Increased (was -6.0)
             secondaryPinnaNotch = -6.0f,  // Increased (was -3.5)
             torsoWarmth        =  3.5f,  // Increased (was 1.5)

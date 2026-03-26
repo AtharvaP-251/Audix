@@ -1,5 +1,6 @@
 package com.audix.app.ui.components
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -84,101 +85,94 @@ fun HeroSection(
             modifier = Modifier.height(36.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (!isAutoEqEnabled) {
-                // AudixEQ is off — show greyed-out pill
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
-                        .padding(horizontal = 14.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "AudixEQ Off",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        fontWeight = FontWeight.Medium,
-                        style = MaterialTheme.typography.labelLarge,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            } else if (genre != null) {
-                // AudixEQ on + genre detected (or fallback)
-                val pillColor = when {
-                    genre == "Offline" -> MaterialTheme.colorScheme.error
-                    genre.startsWith("Error:") || genre == "Unknown" -> MaterialTheme.colorScheme.onSurfaceVariant
-                    else -> MaterialTheme.colorScheme.primary
-                }
-                
-                val displayText = when {
-                    genre == "Offline" -> "Offline"
-                    genre == "Rate Limited" -> "Rate Limited"
-                    genre.startsWith("Error:") || genre == "Unknown" -> "Unknown Genre"
-                    else -> "Genre: $genre"
-                }
 
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(pillColor.copy(alpha = 0.2f))
-                        .padding(horizontal = 14.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = displayText,
+                if (!isAutoEqEnabled) {
+                    // AudixEQ is off — show greyed-out pill
+                    PillContainer(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        backgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f),
+                        text = "AudixEQ Off",
+                        isBold = false
+                    )
+                } else if (genre != null) {
+                    // AudixEQ on + genre detected (or fallback)
+                    val pillColor = when {
+                        genre == "Offline" -> MaterialTheme.colorScheme.error
+                        genre.startsWith("Error:") || genre == "Unknown" -> MaterialTheme.colorScheme.onSurfaceVariant
+                        else -> MaterialTheme.colorScheme.primary
+                    }
+                    
+                    val displayText = when {
+                        genre == "Offline" -> "Offline"
+                        genre == "Rate Limited" -> "Rate Limited"
+                        genre.startsWith("Error:") || genre == "Unknown" -> "Unknown Genre"
+                        else -> "Genre: $genre"
+                    }
+
+                    PillContainer(
                         color = pillColor,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.labelLarge,
-                        textAlign = TextAlign.Center
+                        backgroundColor = pillColor.copy(alpha = 0.2f),
+                        text = displayText,
+                        isBold = true
                     )
-                }
-            } else if (isDetectingGenre && title != "No Song Detected") {
-                // Actively detecting — show animated pill
-                val infiniteTransition = rememberInfiniteTransition(label = "detecting_pulse")
-                val alpha by infiniteTransition.animateFloat(
-                    initialValue = 0.4f,
-                    targetValue = 1.0f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(700, easing = FastOutSlowInEasing),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = "pill_alpha"
-                )
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
-                        .padding(horizontal = 14.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Detecting Genre...",
+                } else if (isDetectingGenre && title != "No Song Detected") {
+                    // Actively detecting — show animated pill
+                    val infiniteTransition = rememberInfiniteTransition(label = "detecting_pulse")
+                    val alpha by infiniteTransition.animateFloat(
+                        initialValue = 0.4f,
+                        targetValue = 1.0f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(700, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "pill_alpha"
+                    )
+                    PillContainer(
                         color = MaterialTheme.colorScheme.tertiary.copy(alpha = alpha),
-                        fontWeight = FontWeight.Medium,
-                        style = MaterialTheme.typography.labelLarge,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            } else if (title != "No Song Detected") {
-                // AudixEQ on but not yet detecting (initial state)
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
-                        .padding(horizontal = 14.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
+                        backgroundColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
                         text = "Detecting Genre...",
-                        color = MaterialTheme.colorScheme.tertiary,
-                        fontWeight = FontWeight.Medium,
-                        style = MaterialTheme.typography.labelLarge,
-                        textAlign = TextAlign.Center
+                        isBold = false
                     )
+                } else if (title != "No Song Detected") {
+                    // AudixEQ on but not yet detecting (initial state)
+                    PillContainer(
+                        color = MaterialTheme.colorScheme.tertiary,
+                        backgroundColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+                        text = "Detecting Genre...",
+                        isBold = false
+                    )
+                } else {
+                    Spacer(modifier = Modifier.size(0.dp))
                 }
-            }
         }
     }
+
 }
+
+@Composable
+private fun PillContainer(
+    color: androidx.compose.ui.graphics.Color,
+    backgroundColor: androidx.compose.ui.graphics.Color,
+    text: String,
+    isBold: Boolean
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 14.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = color,
+            fontWeight = if (isBold) FontWeight.Bold else FontWeight.Medium,
+            style = MaterialTheme.typography.labelLarge,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 
 @Composable
 fun VinylRecord(modifier: Modifier = Modifier) {

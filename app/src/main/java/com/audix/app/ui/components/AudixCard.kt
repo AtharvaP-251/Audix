@@ -13,19 +13,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AudixCard(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+fun AudixCard(
+    modifier: Modifier = Modifier,
+    isHighlighted: Boolean = false,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val borderColor = if (isHighlighted) 
+        Color.White.copy(alpha = 0.25f) 
+    else 
+        Color.White.copy(alpha = 0.1f)
+        
+    val borderWidth = if (isHighlighted) 1.dp else 0.5.dp
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surface)
             .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.05f),
+                width = borderWidth,
+                color = borderColor,
                 shape = RoundedCornerShape(24.dp)
             ),
         content = content
     )
 }
+
 
 @Composable
 fun AudixInnerCard(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
@@ -35,7 +47,7 @@ fun AudixInnerCard(modifier: Modifier = Modifier, content: @Composable BoxScope.
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
-                color = Color.White.copy(alpha = 0.05f),
+                color = Color.White.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(16.dp)
             ),
         content = content

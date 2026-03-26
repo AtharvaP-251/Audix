@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -44,7 +45,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.audix.app.data.UserPreferencesRepository
 import com.audix.app.service.AudioEngineServiceLocal
 import com.audix.app.state.SongState
+import com.audix.app.ui.components.AudixEqLogo
 import com.audix.app.ui.theme.AudixTheme
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -68,6 +71,23 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun GuideStep(number: String, text: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "$number.",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -129,6 +149,11 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
 
     val spatialLevelPref by userPreferencesRepository.spatialLevelFlow.collectAsState(initial = 0)
     var spatialLevelPosition by remember(spatialLevelPref) { mutableStateOf(spatialLevelPref) }
+
+    // Expansion states for footer visibility logic
+    var isEqExpanded by remember { mutableStateOf(isAutoEqEnabled) }
+    var isSpatialExpanded by remember { mutableStateOf(isSpatialEnabled) }
+    var isCustomExpanded by remember { mutableStateOf(isCustomTuningEnabled) }
 
     // Phase 12: Onboarding
     val onboardingShown by userPreferencesRepository.onboardingShownFlow.collectAsState(initial = true)
@@ -305,6 +330,8 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
                 onIntensityChangeFinished = {
                     coroutineScope.launch { userPreferencesRepository.saveEqIntensity(eqIntensityPosition) }
                 },
+                isExpanded = isEqExpanded,
+                onExpandedChange = { isEqExpanded = it },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -331,6 +358,8 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
                         userPreferencesRepository.saveSpatialLevel(it)
                     }
                 },
+                isExpanded = isSpatialExpanded,
+                onExpandedChange = { isSpatialExpanded = it },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -361,13 +390,15 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
                 onCustomTrebleChangeFinished = {
                     coroutineScope.launch { userPreferencesRepository.saveCustomTreble(customTreblePosition) }
                 },
+                isExpanded = isCustomExpanded,
+                onExpandedChange = { isCustomExpanded = it },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(120.dp))
         }
 
-        if (!isAutoEqEnabled && !isSpatialEnabled && !isCustomTuningEnabled) {
+        if (!isEqExpanded && !isSpatialExpanded && !isCustomExpanded) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -428,22 +459,24 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
             }
         }
     }
-
     if (showInfoDialog) {
         AlertDialog(
             onDismissRequest = { showInfoDialog = false },
             containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp,
-            title = { Text("User Guide") },
+            title = {
+                Text(
+                    "User Guide",
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = {
-                Column {
-                    Text(
-                        text = "1. Play music in a supported app (Spotify, YouTube Music) to automatically apply Audix EQ.\n" +
-                               "2. Enable AutoEQ to let the smart engine balance sound in real-time.\n" +
-                               "3. Use Custom Tuning to override defaults and boost Bass, Vocals, or Treble manually.\n" +
-                               "4. Battery exemptions let Audix run safely in the background.",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    GuideStep("1", "Play music in Spotify or YouTube Music to automatically apply Audix EQ.")
+                    GuideStep("2", "Enable AutoEQ to let the smart engine balance sound in real-time.")
+                    GuideStep("3", "Use Custom Tuning to override defaults and boost Bass, Vocals, or Treble.")
+                    GuideStep("4", "Grant battery exemptions to keep Audix running in the background.")
                 }
             },
             confirmButton = {
@@ -451,13 +484,18 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
             }
         )
     }
-
     if (showSettingsDialog) {
         AlertDialog(
             onDismissRequest = { showSettingsDialog = false },
             containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp,
-            title = { Text("Settings & Permissions") },
+            title = {
+                Text(
+                    "Settings & Permissions",
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = {
                 Column {
                     SettingsClickRow(
@@ -493,6 +531,11 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
         )
     }
 }
+
+
+
+
+
 
 @Composable
 private fun OnboardingStep(number: String, title: String, description: String) {

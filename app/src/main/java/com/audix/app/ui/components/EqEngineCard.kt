@@ -1,13 +1,13 @@
 package com.audix.app.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import kotlin.math.roundToInt
+
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,8 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -27,12 +31,18 @@ fun EqEngineCard(
     eqIntensity: Float,
     onIntensityChange: (Float) -> Unit,
     onIntensityChangeFinished: () -> Unit,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Track whether this is the first composition to skip the initial animation
     var isFirstComposition by remember { mutableStateOf(true) }
 
-    AudixCard(modifier = modifier) {
+    AudixCard(
+        modifier = modifier,
+        isHighlighted = isAutoEqEnabled
+    ) {
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -40,10 +50,17 @@ fun EqEngineCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // Clickable Title Area with Premium Interaction
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { onExpandedChange(!isExpanded) }
+                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                ) {
                     AudixEqLogo(
                         color = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(22.dp)
@@ -56,6 +73,17 @@ fun EqEngineCard(
                         color = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
+
+                // Vertical Divider
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .width(1.dp)
+                        .height(24.dp)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                )
+
+                // Toggle Area
                 AudixSwitch(
                     checked = isAutoEqEnabled,
                     onCheckedChange = { newValue ->
@@ -65,30 +93,37 @@ fun EqEngineCard(
                 )
             }
 
-            // Use AnimatedVisibility so the content animates in/out properly
-            // Skip animation on first composition to prevent phantom "close" animation on app open
-            AnimatedVisibility(
-                visible = isAutoEqEnabled,
-                enter = if (isFirstComposition) {
-                    // No animation on initial render — just appear instantly
-                    fadeIn(animationSpec = spring(stiffness = Spring.StiffnessHigh)) +
-                    expandVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh))
-                } else {
-                    fadeIn(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    ) + expandVertically(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    )
+            val transition = updateTransition(targetState = isExpanded, label = "card_expansion")
+            val expansion by transition.animateFloat(
+                transitionSpec = {
+                    if (targetState) {
+                        spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+                    } else {
+                        spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow)
+                    }
                 },
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Column(modifier = Modifier.padding(top = 24.dp)) {
+                label = "expansion_fraction"
+            ) { if (it) 1f else 0f }
+
+            if (expansion != 0f || isExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            alpha = expansion
+                            scaleY = expansion
+                            transformOrigin = TransformOrigin(0.5f, 0f)
+                        }
+                        .layout { measurable: Measurable, constraints: Constraints ->
+                            val placeable = measurable.measure(constraints)
+                            val height = (placeable.height * expansion.coerceAtLeast(0f)).toInt()
+                            layout(placeable.width, height) {
+                                placeable.placeRelative(0, 0)
+                            }
+                        }
+
+                        .padding(top = 24.dp)
+                ) {
                     AudixInnerCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
@@ -104,7 +139,7 @@ fun EqEngineCard(
                                     )
                                 }
                                 Text(
-                                    text = "${(eqIntensity * 100).toInt()}%",
+                                    text = "${(eqIntensity * 100).roundToInt()}%",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -114,12 +149,16 @@ fun EqEngineCard(
                                 value = eqIntensity,
                                 onValueChange = onIntensityChange,
                                 onValueChangeFinished = onIntensityChangeFinished,
+                                steps = 9,
                                 modifier = Modifier.fillMaxWidth()
                             )
+
                         }
                     }
                 }
+
             }
+
         }
     }
 }

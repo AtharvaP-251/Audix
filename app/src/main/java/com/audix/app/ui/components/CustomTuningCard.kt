@@ -1,13 +1,11 @@
 package com.audix.app.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -20,8 +18,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -38,12 +40,18 @@ fun CustomTuningCard(
     customTreble: Float,
     onCustomTrebleChange: (Float) -> Unit,
     onCustomTrebleChangeFinished: () -> Unit,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Track whether this is the first composition to skip the initial animation
     var isFirstComposition by remember { mutableStateOf(true) }
 
-    AudixCard(modifier = modifier) {
+    AudixCard(
+        modifier = modifier,
+        isHighlighted = isCustomTuningEnabled
+    ) {
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -51,10 +59,17 @@ fun CustomTuningCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // Clickable Title Area with Premium Interaction
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { onExpandedChange(!isExpanded) }
+                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Tune,
                         contentDescription = "Custom Tuning",
@@ -68,9 +83,9 @@ fun CustomTuningCard(
                         color = if (isCustomTuningEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
 
-                    // Reset button: always visible when custom tuning is enabled.
+                    // Reset button: visible when the card is expanded.
                     // Greyed out when all values are already 0, tinted when values are non-zero.
-                    if (isCustomTuningEnabled) {
+                    if (isExpanded) {
                         val hasNonZeroValues = customBass != 0f || customVocals != 0f || customTreble != 0f
                         Spacer(modifier = Modifier.width(8.dp))
                         androidx.compose.material3.IconButton(
@@ -96,6 +111,17 @@ fun CustomTuningCard(
                         }
                     }
                 }
+
+                // Vertical Divider
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .width(1.dp)
+                        .height(24.dp)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                )
+
+                // Toggle Area
                 AudixSwitch(
                     checked = isCustomTuningEnabled,
                     onCheckedChange = { newValue ->
@@ -105,38 +131,38 @@ fun CustomTuningCard(
                 )
             }
 
-            AnimatedVisibility(
-                visible = isCustomTuningEnabled,
-                enter = if (isFirstComposition) {
-                    // No animation on initial render — just appear instantly
-                    fadeIn(animationSpec = spring(stiffness = Spring.StiffnessHigh)) +
-                    expandVertically(animationSpec = spring(stiffness = Spring.StiffnessHigh))
-                } else {
-                    fadeIn(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    ) + expandVertically(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    )
+            val transition = updateTransition(targetState = isExpanded, label = "card_expansion")
+            val expansion by transition.animateFloat(
+                transitionSpec = {
+                    if (targetState) {
+                        spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+                    } else {
+                        spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow)
+                    }
                 },
-                exit = fadeOut(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                ) + shrinkVertically(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                )
-            ) {
-                Column(modifier = Modifier.padding(top = 24.dp)) {
+                label = "expansion_fraction"
+            ) { if (it) 1f else 0f }
+
+            if (expansion != 0f || isExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            alpha = expansion
+                            scaleY = expansion
+                            transformOrigin = TransformOrigin(0.5f, 0f)
+                        }
+                        .layout { measurable: Measurable, constraints: Constraints ->
+                            val placeable = measurable.measure(constraints)
+                            val height = (placeable.height * expansion.coerceAtLeast(0f)).toInt()
+                            layout(placeable.width, height) {
+                                placeable.placeRelative(0, 0)
+                            }
+                        }
+
+                        .padding(top = 24.dp)
+                ) {
+
                     AudixInnerCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             TuningRow(
@@ -167,6 +193,7 @@ fun CustomTuningCard(
     }
 }
 
+
 @Composable
 private fun TuningRow(
     label: String,
@@ -196,7 +223,7 @@ private fun TuningRow(
         Spacer(modifier = Modifier.height(8.dp))
         AudixSlider(
             value = value,
-            onValueChange = { onValueChange(kotlin.math.round(it)) },
+            onValueChange = onValueChange,
             onValueChangeFinished = onValueChangeFinished,
             valueRange = -5f..5f,
             steps = 9,
