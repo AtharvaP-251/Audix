@@ -9,6 +9,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -29,7 +32,9 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.audix.app.R
@@ -54,24 +59,63 @@ fun SpatialAudioCard(
         // Active glow indicator when ON
         if (isSpatialEnabled) {
             val infiniteTransition = rememberInfiniteTransition(label = "spatial_glow")
-            val glowAlpha by infiniteTransition.animateFloat(
-                initialValue = 0.04f,
-                targetValue = 0.12f,
+            
+            // perfectly symmetrical breath progress (0.0 to 1.0)
+            val breathProgress by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(2000),
+                    animation = tween(2800, easing = CubicBezierEasing(0.48f, 0f, 0.52f, 1f)),
                     repeatMode = RepeatMode.Reverse
                 ),
-                label = "glow_alpha"
+                label = "breath_progress"
             )
+
             val glowColor = MaterialTheme.colorScheme.primary
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .drawBehind {
-                        drawRoundRect(
-                            color = glowColor.copy(alpha = glowAlpha),
-                            cornerRadius = CornerRadius(24.dp.toPx())
-                        )
+                        val alpha = 0.08f + (breathProgress * 0.18f)
+                        val spread = 1.0f + (breathProgress * 0.10f)
+                        val radius = (size.minDimension / 1.5f) * 1.6f * spread
+                        val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
+                        
+                        // Use native Android Canvas and Paint to enable explicit hardware Dithering
+                        // THE fix for color banding in gradients.
+                        drawIntoCanvas { canvas: androidx.compose.ui.graphics.Canvas ->
+                            val nativeCanvas = canvas.nativeCanvas
+                            
+                            // 10-stop non-linear gradient for ultra-smooth transition
+                            val nativeColors = intArrayOf(
+                                glowColor.copy(alpha = alpha).toArgb(),
+                                glowColor.copy(alpha = alpha * 0.92f).toArgb(),
+                                glowColor.copy(alpha = alpha * 0.80f).toArgb(),
+                                glowColor.copy(alpha = alpha * 0.65f).toArgb(),
+                                glowColor.copy(alpha = alpha * 0.45f).toArgb(),
+                                glowColor.copy(alpha = alpha * 0.30f).toArgb(),
+                                glowColor.copy(alpha = alpha * 0.18f).toArgb(),
+                                glowColor.copy(alpha = alpha * 0.08f).toArgb(),
+                                glowColor.copy(alpha = alpha * 0.02f).toArgb(),
+                                androidx.compose.ui.graphics.Color.Transparent.toArgb()
+                            )
+                            val nativeStops = floatArrayOf(0f, 0.12f, 0.25f, 0.40f, 0.55f, 0.70f, 0.82f, 0.90f, 0.97f, 1f)
+                            
+                            val shader = android.graphics.RadialGradient(
+                                center.x, center.y, radius,
+                                nativeColors, nativeStops,
+                                android.graphics.Shader.TileMode.CLAMP
+                            )
+                            
+                            val paint = android.graphics.Paint().apply {
+                                isAntiAlias = true
+                                isDither = true // Force hardware dithering
+                                setShader(shader)
+                                style = android.graphics.Paint.Style.FILL
+                            }
+                            
+                            nativeCanvas.drawRect(0f, 0f, size.width, size.height, paint)
+                        }
                     }
             )
         }
