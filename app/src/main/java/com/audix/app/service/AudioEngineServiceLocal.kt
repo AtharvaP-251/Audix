@@ -34,9 +34,13 @@ import androidx.room.Room
 
 open class AudioEngineServiceLocal : Service() {
 
-    private val job = Job()
+    private val job = kotlinx.coroutines.SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Main + job)
     private var currentSongJob: Job? = null
+    private var lastJobId: Long = 0
+    private var lastProcessedTitle: String? = null
+    private var lastProcessedArtist: String? = null
+    private var wasLastJobDebounced: Boolean = false
     private var prefReapplyJob: Job? = null
 
     private lateinit var eqEngine: EqEngine
@@ -44,50 +48,18 @@ open class AudioEngineServiceLocal : Service() {
     private lateinit var genreDetector: GenreDetector
     private lateinit var db: AppDatabase
 
-    private val songReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                "com.audix.app.SONG_CHANGED" -> {
-                    val title = intent.getStringExtra("EXTRA_TITLE") ?: return
-                    val artist = intent.getStringExtra("EXTRA_ARTIST") ?: return
-                    handleSongChange(title, artist)
-                }
-                "com.audix.app.PLAYBACK_STATE_CHANGED" -> {
-                    val isPlaying = intent.getBooleanExtra("EXTRA_IS_PLAYING", false)
-                    val packageName = intent.getStringExtra("EXTRA_PACKAGE_NAME") ?: ""
-                    handlePlaybackStateChange(isPlaying, packageName)
-                }
-            }
-        }
-    }
-
     override fun onCreate() {
         super.onCreate()
         startForeground(1, createNotification("Audix EQ Engine Active", "Waiting for music..."))
 
-        db = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "audix_db").build()
+        db = androidx.room.Room.databaseBuilder(applicationContext, AppDatabase::class.java, "audix_db").build()
         genreDetector = GenreDetector(db.songCacheDao())
         userPreferencesRepository = UserPreferencesRepository(applicationContext)
         eqEngine = EqEngine()
         eqEngine.initialize()
 
-        val filter = IntentFilter().apply {
-            addAction("com.audix.app.SONG_CHANGED")
-            addAction("com.audix.app.PLAYBACK_STATE_CHANGED")
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(songReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(songReceiver, filter)
-        }
-
+        observeState()
         observePreferences()
-
-        // Apply EQ for the current song in case it's already playing when service starts
-        val current = SongState.currentSong.value
-        if (current != null) {
-            handleSongChange(current.title, current.artist)
-        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -99,9 +71,42 @@ open class AudioEngineServiceLocal : Service() {
     override fun onDestroy() {
         super.onDestroy()
         job.cancel()
-        try { unregisterReceiver(songReceiver) } catch (e: Exception) { /* already unregistered */ }
         eqEngine.release()
         SongState.isDetectingGenre.value = false
+    }
+
+    private fun observeState() {
+        // Observe song changes
+        scope.launch {
+            SongState.currentSong.collect { song ->
+                if (song != null) {
+                    // Only trigger if it's a new song (title or artist changed)
+                    if (song.title != lastProcessedTitle || song.artist != lastProcessedArtist) {
+                        Log.d("AudioEngine", "Flow detected song change: ${song.title}")
+                        handleSongChange(song.title, song.artist)
+                    }
+                }
+            }
+        }
+
+        // Observe playback state
+        scope.launch {
+            SongState.isPlaying.collect { isPlaying ->
+                val current = SongState.currentSong.value
+                val isAllowed = if (current != null) {
+                    SongDetectionService.ALLOWED_PACKAGES.contains(current.packageName)
+                } else false
+
+                if (!isPlaying || !isAllowed) {
+                    eqEngine.setEnabled(false)
+                    val titleText = if (current != null && isAllowed) "${current.title} by ${current.artist}" else "Waiting for music..."
+                    updateNotification("EQ Disabled", titleText)
+                } else {
+                    Log.d("AudioEngine", "Flow detected playback start")
+                    forceReapply()
+                }
+            }
+        }
     }
 
     private fun observePreferences() {
@@ -177,135 +182,145 @@ open class AudioEngineServiceLocal : Service() {
     }
 
     private fun applyEqForSong(title: String, artist: String, debounce: Boolean) {
-        // Cancel any in-flight detection for a previous song
+        // SMARTER CANCELLATION:
+        // If we are already processing this EXACT song, and the previous job was already immediate (not debounced)
+        // OR the new job is also a debounced one, then don't interrupt it.
+        if (currentSongJob?.isActive == true && lastProcessedTitle == title && lastProcessedArtist == artist) {
+            if (debounce || !wasLastJobDebounced) {
+                Log.d("AudioEngine", "Redundant detection request for $title - ignoring")
+                return
+            }
+        }
+
+        // Increment job ID so OLD jobs don't clobber NEW job states
+        val jobId = ++lastJobId
+        lastProcessedTitle = title
+        lastProcessedArtist = artist
+        wasLastJobDebounced = debounce
+        
+        // Cancel the previous job (either for a different song, or to upgrade to non-debounced)
         currentSongJob?.cancel()
 
         currentSongJob = scope.launch {
-            val isCustomTuning = withContext(Dispatchers.IO) {
-                userPreferencesRepository.customTuningEnabledFlow.first()
-            }
-            val isAutoEq = withContext(Dispatchers.IO) {
-                userPreferencesRepository.autoEqEnabledFlow.first()
-            }
+            try {
+                // Starting fresh genre detection — provide IMMEDIATE feedback
+                if (jobId == lastJobId) {
+                    SongState.isDetectingGenre.value = true
+                }
 
-            // Custom tuning overrides auto-EQ
-            if (isCustomTuning) {
-                SongState.isDetectingGenre.value = false
-                eqEngine.applyPreset(EQPreset("Flat", emptyMap()))
-                updateNotification("Manual EQ applied", "$title by $artist")
-                return@launch
-            }
+                val preferences = withContext(Dispatchers.IO) {
+                    val custom = userPreferencesRepository.customTuningEnabledFlow.first()
+                    val auto = userPreferencesRepository.autoEqEnabledFlow.first()
+                    Pair(custom, auto)
+                }
+                val isCustomTuning = preferences.first
+                val isAutoEq = preferences.second
 
-            if (!isAutoEq) {
-                SongState.isDetectingGenre.value = false
-                eqEngine.applyPreset(EQPreset("Flat", emptyMap()))
-                eqEngine.setEnabled(false)
-                updateNotification("EQ Disabled", "$title by $artist")
-                return@launch
-            }
-
-            // Check if we already have the genre for this song (and it's a valid result, not an error)
-            val cs = SongState.currentSong.value
-            val existingGenre = cs?.genre
-            val hasValidCachedGenre = existingGenre != null &&
-                    !existingGenre.startsWith("Error:") &&
-                    existingGenre != "Rate Limit Exceeded" &&
-                    cs.title == title
-
-            if (hasValidCachedGenre) {
-                // Already have a clean genre — just apply it
-                SongState.isDetectingGenre.value = false
-                val preset = EQPresetLibrary.getPresetForGenre(existingGenre!!) ?: EQPreset("Flat", emptyMap())
-                eqEngine.applyPreset(preset)
-                updateNotification("EQ: $existingGenre", "$title by $artist")
-                return@launch
-            }
-
-            // Starting fresh genre detection
-            SongState.isDetectingGenre.value = true
-            updateNotification("Detecting genre...", "$title by $artist")
-
-            if (debounce) {
-                // Debounce rapid notification updates from media players
-                delay(600)
-            }
-
-            // Check if this song is in the DB cache before hitting the API
-            val cachedGenre = withContext(Dispatchers.IO) {
-                try { db.songCacheDao().getGenreForSong(title, artist) } catch (e: Exception) { null }
-            }
-
-            val detectedGenre: String?
-            if (cachedGenre != null && !cachedGenre.startsWith("Error:")) {
-                Log.d("AudioEngine", "DB cache hit: $cachedGenre for $title")
-                detectedGenre = cachedGenre
-            } else {
-                // Check connectivity before hitting the network
-                if (!isNetworkAvailable()) {
-                    Log.w("AudioEngine", "Network unavailable for genre detection")
-                    SongState.isDetectingGenre.value = false
+                // Custom tuning overrides auto-EQ
+                if (isCustomTuning) {
+                    if (jobId == lastJobId) SongState.isDetectingGenre.value = false
                     eqEngine.applyPreset(EQPreset("Flat", emptyMap()))
-                    updateNotification("Offline — Flat EQ active", "$title by $artist")
-                    // Update SongState so UI shows a useful state
-                    val currentSong = SongState.currentSong.value
-                    if (currentSong != null && currentSong.title == title) {
-                        SongState.currentSong.value = currentSong.copy(genre = "Offline")
-                    } else if (currentSong == null) {
-                        SongState.currentSong.value = com.audix.app.state.SongInfo(title, artist, genre = "Offline")
-                    }
+                    updateNotification("Manual EQ applied", "$title by $artist")
                     return@launch
                 }
-                detectedGenre = withContext(Dispatchers.IO) {
-                    genreDetector.detectGenre(title, artist)
-                }
-            }
 
-            SongState.isDetectingGenre.value = false
-
-            if (detectedGenre != null && !detectedGenre.startsWith("Error:") && detectedGenre != "Rate Limit Exceeded") {
-                // Update SongState with detected genre
-                val currentSong = SongState.currentSong.value
-                if (currentSong != null && currentSong.title == title) {
-                    SongState.currentSong.value = currentSong.copy(genre = detectedGenre)
-                } else if (currentSong == null) {
-                    SongState.currentSong.value = com.audix.app.state.SongInfo(title, artist, genre = detectedGenre)
-                }
-
-                val preset = EQPresetLibrary.getPresetForGenre(detectedGenre)
-                if (preset != null) {
-                    eqEngine.applyPreset(preset)
-                    updateNotification("EQ: $detectedGenre", "$title by $artist")
-                } else {
+                if (!isAutoEq) {
+                    if (jobId == lastJobId) SongState.isDetectingGenre.value = false
                     eqEngine.applyPreset(EQPreset("Flat", emptyMap()))
-                    updateNotification("Genre: $detectedGenre (Flat EQ)", "$title by $artist")
+                    eqEngine.setEnabled(false)
+                    updateNotification("EQ Disabled", "$title by $artist")
+                    return@launch
                 }
-            } else {
-                // Graceful degradation: apply flat EQ and show the error clearly
-                val fallbackGenre = when {
-                    detectedGenre == "Rate Limit Exceeded" -> "Rate Limited"
-                    detectedGenre?.startsWith("Error:") == true -> "Unknown"
-                    else -> "Unknown"
+
+                // Check if we already have the genre for this song (and it's a valid result, not an error)
+                val cs = SongState.currentSong.value
+                val existingGenre = cs?.genre
+                val hasValidCachedGenre = existingGenre != null && 
+                                        !existingGenre.startsWith("Error:") && 
+                                        existingGenre != "Rate Limit Exceeded" && 
+                                        existingGenre != "Offline" &&
+                                        cs.title == title
+
+                if (hasValidCachedGenre) {
+                    if (jobId == lastJobId) SongState.isDetectingGenre.value = false
+                    val preset = EQPresetLibrary.getPresetForGenre(existingGenre!!) ?: EQPreset("Flat", emptyMap())
+                    eqEngine.applyPreset(preset)
+                    updateNotification("EQ: $existingGenre", "$title by $artist")
+                    return@launch
                 }
-                
-                // CRITICAL: Always update the genre so the UI doesn't get stuck in "Detecting Genre..." forever
-                val currentSong = SongState.currentSong.value
-                if (currentSong != null && currentSong.title == title) {
-                    SongState.currentSong.value = currentSong.copy(genre = fallbackGenre)
-                } else if (currentSong == null) {
-                    SongState.currentSong.value = com.audix.app.state.SongInfo(title, artist, genre = fallbackGenre)
+
+                updateNotification("Detecting genre...", "$title by $artist")
+
+                if (debounce) {
+                    delay(600)
+                    // Re-check if song changed during delay
+                    val nowPlaying = SongState.currentSong.value
+                    if (nowPlaying == null || nowPlaying.title != title) return@launch
                 }
-                
-                eqEngine.applyPreset(EQPreset("Flat", emptyMap()))
-                val errorMsg = when {
-                    detectedGenre == "Rate Limit Exceeded" -> "Rate limit — Flat EQ active"
-                    detectedGenre?.startsWith("Error:") == true -> "Detection failed — Flat EQ active"
-                    else -> "Unable to detect genre"
+
+                // Use withTimeout to ensure we NEVER hang "forever"
+                val resultGenre = kotlinx.coroutines.withTimeoutOrNull(15000) {
+                    // Check DB first
+                    val cached = withContext(Dispatchers.IO) {
+                        try { db.songCacheDao().getGenreForSong(title, artist) } catch (e: Exception) { null }
+                    }
+                    
+                    if (cached != null && !cached.startsWith("Error:")) {
+                        cached
+                    } else if (!isNetworkAvailable()) {
+                        "Offline"
+                    } else {
+                        withContext(Dispatchers.IO) {
+                            try { genreDetector.detectGenre(title, artist) } catch (e: Exception) { "Error: Failed" }
+                        }
+                    }
+                } ?: "Error: Timeout"
+
+                if (jobId == lastJobId) {
+                    updateSongStateAndEq(title, artist, resultGenre)
                 }
-                updateNotification(errorMsg, "$title by $artist")
-                Log.w("AudioEngine", "Genre detection result: $detectedGenre — applying flat EQ")
+            } catch (e: Exception) {
+                if (e !is kotlinx.coroutines.CancellationException) {
+                    Log.e("AudioEngine", "Fatal error in applyEqForSong: ${e.message}", e)
+                }
+            } finally {
+                if (jobId == lastJobId) {
+                    SongState.isDetectingGenre.value = false
+                }
             }
         }
     }
+
+    private fun updateSongStateAndEq(title: String, artist: String, genre: String?) {
+        val detectedGenre = genre ?: "Unknown"
+        
+        // Update SongState
+        val current = SongState.currentSong.value
+        if (current != null && current.title == title) {
+            SongState.currentSong.value = current.copy(genre = detectedGenre)
+        } else if (current == null) {
+            SongState.currentSong.value = com.audix.app.state.SongInfo(title, artist, genre = detectedGenre)
+        }
+
+        // Apply EQ
+        val preset = when {
+            detectedGenre.startsWith("Error:") || detectedGenre == "Unknown" || detectedGenre == "Offline" -> 
+                EQPreset("Flat", emptyMap())
+            else -> EQPresetLibrary.getPresetForGenre(detectedGenre) ?: EQPreset("Flat", emptyMap())
+        }
+        
+        eqEngine.applyPreset(preset)
+        
+        val notifyTitle = when {
+            detectedGenre == "Offline" -> "Offline — Flat EQ"
+            detectedGenre.startsWith("Error:") -> "Detection failed — Flat EQ"
+            else -> "EQ: $detectedGenre"
+        }
+        updateNotification(notifyTitle, "$title by $artist")
+    }
+
+
+
 
     private fun isNetworkAvailable(): Boolean {
         return try {

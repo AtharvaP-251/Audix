@@ -101,17 +101,30 @@ fun HeroSection(
                     )
                 }
             } else if (genre != null) {
-                // AudixEQ on + genre detected
+                // AudixEQ on + genre detected (or fallback)
+                val pillColor = when {
+                    genre == "Offline" -> MaterialTheme.colorScheme.error
+                    genre.startsWith("Error:") || genre == "Unknown" -> MaterialTheme.colorScheme.onSurfaceVariant
+                    else -> MaterialTheme.colorScheme.primary
+                }
+                
+                val displayText = when {
+                    genre == "Offline" -> "Offline"
+                    genre == "Rate Limited" -> "Rate Limited"
+                    genre.startsWith("Error:") || genre == "Unknown" -> "Unknown Genre"
+                    else -> "Genre: $genre"
+                }
+
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                        .background(pillColor.copy(alpha = 0.2f))
                         .padding(horizontal = 14.dp, vertical = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Genre: $genre",
-                        color = MaterialTheme.colorScheme.primary,
+                        text = displayText,
+                        color = pillColor,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelLarge,
                         textAlign = TextAlign.Center

@@ -127,10 +127,7 @@ class SongDetectionService : NotificationListenerService() {
 
             val currentPackage = SongState.currentSong.value?.packageName
             if (wasPlaying != SongState.isPlaying.value || (isPlaying && packageName != currentPackage)) {
-                val stateIntent = Intent("com.audix.app.PLAYBACK_STATE_CHANGED")
-                stateIntent.putExtra("EXTRA_IS_PLAYING", isPlaying)
-                stateIntent.putExtra("EXTRA_PACKAGE_NAME", packageName)
-                sendBroadcast(stateIntent)
+                Log.d(TAG, "Playback flow updated: $isPlaying ($packageName)")
             }
 
             if (title.isNotEmpty() && title != "null") {
@@ -141,12 +138,6 @@ class SongDetectionService : NotificationListenerService() {
                     if (current?.title != title || current?.artist != artist) {
                         Log.d(TAG, "Media Detected (Initial): $title by $artist ($packageName)")
                         SongState.currentSong.value = SongInfo(title, artist, packageName)
-                        
-                        val intent = Intent("com.audix.app.SONG_CHANGED")
-                        intent.putExtra("EXTRA_TITLE", title)
-                        intent.putExtra("EXTRA_ARTIST", artist)
-                        intent.putExtra("EXTRA_PACKAGE_NAME", packageName)
-                        sendBroadcast(intent)
                     }
                 }
             }
@@ -188,10 +179,7 @@ class SongDetectionService : NotificationListenerService() {
 
                     val currentPackage = SongState.currentSong.value?.packageName
                     if (wasPlaying != SongState.isPlaying.value || (isPlaying && packageName != currentPackage)) {
-                        val stateIntent = Intent("com.audix.app.PLAYBACK_STATE_CHANGED")
-                        stateIntent.putExtra("EXTRA_IS_PLAYING", isPlaying)
-                        stateIntent.putExtra("EXTRA_PACKAGE_NAME", packageName)
-                        sendBroadcast(stateIntent)
+                        Log.d(TAG, "Playback flow updated (Callback): $isPlaying")
                     }
                 }
                 
@@ -207,12 +195,6 @@ class SongDetectionService : NotificationListenerService() {
                             if (current?.title != title || current?.artist != artist) {
                                 Log.d(TAG, "Media Detected (Callback): $title by $artist ($packageName)")
                                 SongState.currentSong.value = SongInfo(title, artist, packageName)
-                                
-                                val intent = Intent("com.audix.app.SONG_CHANGED")
-                                intent.putExtra("EXTRA_TITLE", title)
-                                intent.putExtra("EXTRA_ARTIST", artist)
-                                intent.putExtra("EXTRA_PACKAGE_NAME", packageName)
-                                sendBroadcast(intent)
                             }
                         }
                     }

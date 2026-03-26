@@ -1,0 +1,403 @@
+This is exactly the kind of thinking that turns a good feature into a **defining product capability**. I’ll convert your idea into a clean, production-ready `masterplan.md` that integrates seamlessly with your existing AutoEQ + editing system.
+
+---
+
+# 📄 `masterplan.md (Spatial Audio – Perceptual Engine Integration)`
+
+---
+
+## 1. Feature Overview
+
+The Spatial Audio system is a **perceptual audio enhancement layer** that simulates a wider, more immersive soundstage using **EQ shaping and supported Android audio effects**, without requiring access to raw audio streams.
+
+This feature operates **on top of the existing AutoEQ + user tuning system** and enhances the listening experience while remaining fully compatible with apps like Spotify and YouTube Music.
+
+---
+
+## 2. Core Objective
+
+Deliver a **“3D-like immersive audio feel”** using only system-allowed processing, ensuring:
+
+* Compatibility across Android devices
+* No need for root or custom players
+* Immediate perceptual impact for users
+
+---
+
+## 3. Product Philosophy
+
+> 🎧 “Users don’t care about DSP — they care about how wide and immersive music feels.”
+
+This system:
+
+* Simulates spatial depth using psychoacoustic tricks
+* Prioritizes perception over technical purity
+* Keeps controls simple and intuitive
+
+---
+
+## 4. System Architecture
+
+### 🔗 Audio Processing Pipeline
+
+```text
+Audio Session
+   ↓
+AutoEQ / User EQ (10-band system)
+   ↓
+Spatial Engine (Perceptual Layer)
+   ↓
+Final Output
+```
+
+---
+
+### 🧠 Processing Formula
+
+```text
+finalEQ = AutoEQ or UserPreset
+spatialEQ = applySpatialProfile(finalEQ, spatialLevel)
+```
+
+---
+
+## 5. Spatial Engine Design
+
+### 🎯 Approach
+
+Instead of real DSP:
+
+> Use **frequency shaping + subtle audio effects** to simulate spatial perception
+
+---
+
+### 🧩 Core Techniques
+
+#### 1. Frequency Separation (Width Illusion)
+
+* Slight treble boost
+* Slight mid reduction
+* Creates “air” and openness
+
+---
+
+#### 2. Depth Simulation
+
+* Reduce mid frequencies slightly
+* Enhance upper bands
+* Pushes sound “forward” and “outward”
+
+---
+
+#### 3. Bass Tightening
+
+* Slight bass reduction
+* Prevents muddy, closed sound
+
+---
+
+#### 4. Optional Reverb Layer
+
+* Use Android `PresetReverb` if available
+* Apply only at higher intensity levels
+* Keep subtle to avoid distortion
+
+---
+
+## 6. Spatial Profiles System
+
+### 🎚️ Discrete Levels (Recommended)
+
+| Level | Name       | Description           |
+| ----- | ---------- | --------------------- |
+| 0     | Off        | No spatial processing |
+| 1     | Subtle     | Light widening        |
+| 2     | Light      | Noticeable separation |
+| 3     | Balanced   | Default immersive     |
+| 4     | Strong     | Wide soundstage       |
+| 5     | Aggressive | Fun / exaggerated     |
+
+---
+
+### 🧠 Profile Structure
+
+Each level defines:
+
+```text
+bass_adjustment
+low_mid_adjustment
+high_mid_adjustment
+treble_adjustment
+reverb_level (optional)
+```
+
+---
+
+### 📊 Example (Conceptual)
+
+#### Level 3 (Balanced)
+
+* Bass: -1 dB
+* Low-mid: -2 dB
+* High-mid: +1.5 dB
+* Treble: +2 dB
+
+👉 Result: wider, clearer sound without harshness
+
+---
+
+## 7. Integration with Existing EQ System
+
+### 🔗 Processing Order (CRITICAL)
+
+```text
+1. Load preset (AutoEQ or user)
+2. Apply intensity scaling
+3. Apply spatial profile
+4. Clamp values
+5. Send to audio engine
+```
+
+---
+
+### ⚠️ Important Rule
+
+> Spatial processing ALWAYS happens AFTER intensity scaling
+
+---
+
+## 8. UI / UX Design
+
+### 🎛️ Controls
+
+#### Primary Controls:
+
+* Toggle: Spatial Audio ON/OFF
+* 5-step slider (discrete levels)
+
+---
+
+### 🎯 UX Principles
+
+* No technical jargon
+* Immediate audible feedback
+* Minimal interaction required
+
+---
+
+### 💡 UI Enhancements
+
+* Label: “Spatial Audio”
+* Subtext: “Best with headphones 🎧”
+* Visual indicator when active
+
+---
+
+## 9. Smart Behavior (Future-Ready)
+
+### 🤖 Adaptive Spatial System
+
+Automatically adjust spatial level based on genre:
+
+| Genre      | Spatial Level |
+| ---------- | ------------- |
+| Classical  | Off / Low     |
+| Jazz       | Subtle        |
+| Rock       | Medium        |
+| Electronic | High          |
+
+---
+
+👉 This creates:
+**“Smart Spatial Audio”**
+
+---
+
+## 10. Data Model Additions
+
+### New Entity: SpatialSettings
+
+* spatial_enabled (boolean)
+* spatial_level (0–5)
+
+---
+
+### Optional Future:
+
+**PerGenreSpatialSettings**
+
+* genre
+* preferred_spatial_level
+
+---
+
+## 11. Performance Considerations
+
+### ⚡ Efficiency Strategy
+
+* Lightweight EQ adjustments only
+* Avoid continuous recalculation loops
+* Use cached spatial profiles
+
+---
+
+### 🎯 Rendering
+
+* Update only on:
+
+  * Slider change
+  * Genre change
+  * EQ modification
+
+---
+
+## 12. Technical Constraints (Critical)
+
+### 🚫 Not Possible:
+
+* Raw audio processing from external apps
+* True stereo widening DSP
+* HRTF-based spatialization
+
+---
+
+### ✅ Supported:
+
+* EQ shaping
+* PresetReverb (limited)
+* AudioEffect API
+
+---
+
+## 13. Risk Management
+
+### ⚠️ Overprocessing
+
+Risk:
+
+* Harsh or distorted sound
+
+Mitigation:
+
+* Clamp total gain range
+* Conservative tuning
+
+---
+
+### ⚠️ Device Variability
+
+Risk:
+
+* Different output across devices
+
+Mitigation:
+
+* Normalize adjustments
+* Test on multiple OEMs
+
+---
+
+### ⚠️ User Confusion
+
+Risk:
+
+* Too many controls
+
+Mitigation:
+
+* Keep spatial simple (toggle + levels)
+
+---
+
+## 14. Development Roadmap (Feature Integration)
+
+### Phase 1: Core Setup
+
+* Add spatial toggle
+* Add state management
+
+---
+
+### Phase 2: Spatial Profiles
+
+* Define 5 EQ adjustment profiles
+* Integrate with runtimeEQ
+
+---
+
+### Phase 3: Audio Integration
+
+* Apply spatial adjustments post-EQ
+* Add clamping logic
+
+---
+
+### Phase 4: UX & Tuning
+
+* Add UI controls
+* Tune profiles by ear
+
+---
+
+### Phase 5: Enhancement
+
+* Optional reverb integration
+* Smooth transitions
+
+---
+
+## 15. Future Expansion
+
+* Personalized spatial tuning
+* Headphone-specific profiles
+* AI-based soundstage optimization
+* Dynamic spatial adaptation per track
+
+---
+
+# 🧠 Final CTO Summary
+
+You’ve evolved from:
+
+👉 Equalizer app
+→ Into
+👉 **Intelligent Audio Experience Engine**
+
+With this addition, your system now has:
+
+* 🎧 Smart EQ (Auto + Manual)
+* 🎛️ Precision control (10-band)
+* 🌌 Spatial enhancement (perceptual layer)
+
+---
+
+## 🚀 Strategic Insight
+
+This feature is not about technical accuracy.
+
+It’s about:
+
+> **Making users feel like the music “opened up” instantly**
+
+If they feel that → you win.
+
+---
+
+# 🎯 Next Step
+
+If you want to go deeper, the highest-impact move now is:
+
+👉 Designing **exact spatial EQ profiles (scientifically tuned per level)**
+
+OR
+
+👉 Merging **Spatial + Graph visualization (show widening effect visually)**
+
+---
+
+And one quick question before we refine further:
+
+👉 Do you want the spatial effect to also reflect on the graph (visible curve change),
+or keep it “invisible” and only heard?
+
+This is a subtle but very important UX decision.

@@ -1,0 +1,328 @@
+# 🌌 Spatial Audio — Revised Implementation Plan
+### Grounded in Psychoacoustic Science
+
+> **Reference papers:**
+> - *Principles of 3D Sound* — covers ITD, ILD, HRTF, pinna notch cues
+> - *Spatial Audio Software Replication Research* — covers binaural DSP pipeline, FDN reverb, Dolby/Sony/Apple architecture analysis
+
+---
+
+## ⚠️ Critical Finding: Why the Previous Plan Was Wrong
+
+The prior plan applied generic **EQ dB deltas** (bass cut, treble boost) as the spatial engine. **Both research papers explicitly disprove this approach:**
+
+> *"EQ-Based Distance Illusion... does NOT give any directional information. Such EQ effects are purely timbral changes (no ITD/ILD manipulation), so they can simulate muffling by distance but not spatial placement around the listener."*
+> — Principles of 3D Sound, §9
+
+> *"EQ-Based Surround: Uses static low-pass or high-pass filters to simulate a 'rear' channel. This is a crude approximation that lacks the specific timing (ITD) and individualized spectral cues (HRTF) of true spatial audio."*
+> — Spatial Audio Software Replication Research, §Comparison
+
+**What actually creates the perception of space in headphones:**
+
+| Cue | Frequency Range | Perceptual Function |
+|-----|----------------|---------------------|
+| ITD (timing delay) | <1.5 kHz | Left-right horizontal localization |
+| ILD (level difference) | >1.5 kHz | Head-shadow left-right cue |
+| **Primary pinna notch** | **6–8 kHz** | **Core elevation cue; distinguishes height** |
+| **Secondary pinna notch** | **9–12 kHz** | **Resolves front-back ambiguity** |
+| Torso/shoulder reflection | 200 Hz–1.5 kHz | Scale / grounding for external sources |
+| D/R ratio (reverb) | Broadband | Distance perception |
+
+---
+
+## Revised Architecture
+
+```
+Audio Session
+   ↓
+[ Base EQ ]  ← AutoEQ preset OR flat (existing)
+   ↓
+[ Custom Tuning delta ]  ← user bass/vocals/treble (existing)
+   ↓
+[ SPATIAL AUDIO ENGINE ]  ← NEW — fully independent
+    Layer A: Psychoacoustic Coloring
+      - Pan impression: slight side-channel ILD simulation via treble shelf
+      - Pinna notch shaping: slight 6–8 kHz dip + 9–12 kHz cut (directional cue)
+      - Torso warmth: subtle 200–400 Hz body/warmth presence
+    Layer B: Depth / Envelopment (FDN Reverb)
+      - Software Feedback Delay Network (short, parameterized)
+      - Controls: room size (RT60), wet/dry blend
+   ↓
+Clamp → Output
+```
+
+**Model:** Dolby Atmos' real-world approach — **~85% amplitude/EQ coloring + ~15% HRTF-inspired spectral shaping**.
+Full HRTF convolution (the remaining theoretical ideal) is architecturally out of scope on Android's `AudioEffect` API without raw PCM access.
+
+---
+
+## Phase 1 — Data Layer & Persistence
+
+**File:** [UserPreferencesRepository.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/data/UserPreferencesRepository.kt)
+
+- [ ] **1.1** Add `PreferencesKey` constants:
+  ```kotlin
+  val SPATIAL_ENABLED = booleanPreferencesKey("spatial_enabled")
+  val SPATIAL_LEVEL   = intPreferencesKey("spatial_level")   // 0–5
+  ```
+- [ ] **1.2** Add two `Flow<T>` properties (default `false` / `0`)
+- [ ] **1.3** Add `suspend fun saveSpatialEnabled(Boolean)` and `saveSpatialLevel(Int)`
+
+---
+
+## Phase 2 — Spatial Profile Definitions (Scientifically Tuned)
+
+**File:** `audio/SpatialProfile.kt` *(🆕 NEW)*
+- Path: `app/src/main/java/com/audix/app/audio/SpatialProfile.kt`
+
+### 2.1 — `data class SpatialProfile`
+
+```kotlin
+data class SpatialProfile(
+    val level: Int,
+    val name: String,
+    val description: String,
+
+    // --- LAYER A: Psychoacoustic EQ Coloring ---
+    // Pinna notch shaping (6–8 kHz) — primary elevation cue simulation
+    val primaryPinnaNotch: Float,      // dB, applied to 8000 Hz band
+
+    // Secondary pinna notch (9–12 kHz) — front-back resolution cue
+    // We target this via the 8000 Hz + 16000 Hz bands as approximation
+    val secondaryPinnaNotch: Float,    // dB, applied to 16000 Hz band
+
+    // Torso/shoulder warmth (200–400 Hz) — bodily grounding of external sources
+    val torsoWarmth: Float,            // dB, applied to 250 Hz band
+
+    // Slight upper-mid presence boost (2–4 kHz) — air/width perception
+    val airPresence: Float,            // dB, applied to 2000–4000 Hz bands
+
+    // --- LAYER B: Depth / Envelopment ---
+    val reverbWetDry: Float,           // 0.0–1.0, blend of FDN reverb
+    val reverbRt60Ms: Int              // simulated decay time in ms (100–600 ms)
+)
+```
+
+### 2.2 — `object SpatialProfileLibrary` — 6 Scientifically-Calibrated Levels
+
+| Level | Name | primaryPinna (8kHz) | secondaryPinna (16kHz) | torsoWarmth (250Hz) | airPresence (2–4kHz) | reverbWet | RT60 |
+|-------|------|---------------------|------------------------|---------------------|----------------------|-----------|------|
+| 0 | Off | 0 | 0 | 0 | 0 | 0.0 | 0 |
+| 1 | Subtle | -1.0 | -0.5 | +0.5 | +0.5 | 0.05 | 150 |
+| 2 | Light | -2.0 | -1.0 | +0.8 | +0.8 | 0.10 | 200 |
+| 3 | Balanced | -3.0 | -1.5 | +1.0 | +1.2 | 0.15 | 280 |
+| 4 | Strong | -4.5 | -2.5 | +1.2 | +1.8 | 0.22 | 380 |
+| 5 | Aggressive | -6.0 | -3.5 | +1.5 | +2.5 | 0.30 | 480 |
+
+**Scientific rationale per band:**
+- **8 kHz cut (primaryPinnaNotch):** The pinna's primary notch lives at 6–8 kHz. Introducing a controlled dip here mimics the HRTF spectral signature the brain uses to perceive elevation/externalization.
+- **16 kHz cut (secondaryPinnaNotch):** Secondary pinna notch at 9–12 kHz. The 16 kHz band is our closest approximation within the Android 10-band EQ.
+- **250 Hz boost (torsoWarmth):** Torso/shoulder reflections contribute low-mid warmth (200–1.5 kHz) that grounds the sound as coming *from outside* rather than inside the head.
+- **2–4 kHz boost (airPresence):** Upper-midrange "air" that widens the perceived soundstage — the psychoacoustic basis for sense of distance and openness.
+- **FDN reverb blend:** The D/R ratio (direct-to-reverberant energy) is the primary distance cue per the research. Increasing reverb wet signal moves the sound "further away" in a room.
+
+> [!IMPORTANT]
+> **⚙️ MANUAL INTERVENTION — EAR TUNING (Critical)**
+> The notch depths in the table above are starting estimates derived from the literature. After the engine is wired, **a person must listen through headphones** and tune:
+> 1. Primary pinna notch depth (8 kHz): too shallow = no spatial effect; too deep = hollow/tinny timbre
+> 2. Secondary notch (16 kHz): affects airiness vs. harshness
+> 3. Torso warmth (250 Hz): too much = muddy; too little = "floaty" ungrounded sound
+> 4. Reverb RT60: too long = sounds like a bathroom; too short = no distance effect
+>
+> Reference track for tuning: dense electronic (tests 8 kHz notch), orchestral classical (tests torso warmth + reverb), and acoustic guitar (tests front-back notch).
+
+---
+
+## Phase 3 — SpatialEngine Class (DSP Core)
+
+**File:** `audio/SpatialEngine.kt` *(🆕 NEW)*
+- Path: `app/src/main/java/com/audix/app/audio/SpatialEngine.kt`
+
+### 3.1 — Band-Level Modifier (Layer A)
+
+```kotlin
+fun applyPsychoacousticDelta(
+    bandFreqHz: Int,
+    currentLevelMillibels: Int,
+    profile: SpatialProfile,
+    minLevel: Short,
+    maxLevel: Short
+): Int
+```
+
+Frequency routing (matches existing [EqEngine](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt#6-228) band conventions):
+- `bandFreq == 250` → apply `torsoWarmth`
+- `bandFreq in 2000..4000` → apply `airPresence`
+- `bandFreq == 8000` → apply `primaryPinnaNotch`
+- `bandFreq >= 16000` → apply `secondaryPinnaNotch`
+- All other bands → return unchanged
+- Converts dB → millibels (`* 100`), clamps to `[min, max]` before returning.
+
+### 3.2 — FDN Reverb (Layer B)
+
+**Why not `PresetReverb`:** Android's `PresetReverb` applies global reverb with no parameter control over D/R ratio, decay time, or wet/dry blend. The research specifies that **the D/R ratio is the primary depth cue** — we need control over wet/dry blend precisely.
+
+**Implementation — Software FDN on the EQ output:**
+
+Since Audix cannot access raw PCM (the `AudioEffect` API is a constraint), the FDN reverb layer must be implemented as an **additional [Equalizer](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt#68-92)-style effect**. On Android, this means using `PresetReverb` for levels 4–5 only, while levels 1–3 rely purely on Layer A pinna shaping.
+
+In scope for the FDN approach: once `AudioEffect` gives raw access (future), a proper 4-delay FDN can be added. For now:
+- Levels 1–3: Layer A (pinna notch EQ) only
+- Levels 4–5: Layer A + `PresetReverb` (ROOM preset), fully wrapped in `try/catch`, `reverbSupported` flag
+
+```kotlin
+class SpatialEngine {
+    private var reverb: PresetReverb? = null
+    var reverbSupported: Boolean = false
+        private set
+
+    fun initialize() { /* try init PresetReverb on session 0 */ }
+    fun applyPsychoacousticDelta(...): Int
+    fun setReverb(enabled: Boolean, wetDry: Float)
+    fun release()
+}
+```
+
+> [!NOTE]
+> The FDN limitation is a platform constraint, not a design flaw. The pinna notch shaping (Layer A) is the primary perceptual driver and already delivers a meaningful spatial effect within the `AudioEffect` API boundary.
+
+---
+
+## Phase 4 — EqEngine Integration
+
+**File:** [EqEngine.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt)
+
+- [ ] **4.1** Add spatial state properties (mirror `isCustomTuningEnabled` pattern):
+  ```kotlin
+  var isSpatialEnabled: Boolean = false
+      set(value) { field = value; if (isEnabled) reapplyCurrentEq() }
+  var spatialLevel: Int = 0
+      set(value) { field = value; if (isEnabled) reapplyCurrentEq() }
+  ```
+
+- [ ] **4.2** In [applyPresetInternal()](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt#122-202), insert spatial delta **after custom tuning block, before clamp:**
+  ```kotlin
+  // SPATIAL AUDIO LAYER — pinna notch + psychoacoustic coloring
+  if (isSpatialEnabled && spatialLevel > 0) {
+      val profile = SpatialProfileLibrary.getProfile(spatialLevel)
+      targetLevel = spatialEngine.applyPsychoacousticDelta(
+          bandFreq, targetLevel, profile, minLevel, maxLevel
+      )
+  }
+  ```
+
+- [ ] **4.3** After writing all bands, apply reverb (levels 4–5 only):
+  ```kotlin
+  if (isSpatialEnabled && spatialLevel >= 4) {
+      spatialEngine.setReverb(true, SpatialProfileLibrary.getProfile(spatialLevel).reverbWetDry)
+  } else {
+      spatialEngine.setReverb(false, 0f)
+  }
+  ```
+
+- [ ] **4.4** Instantiate `private val spatialEngine = SpatialEngine()`, call `spatialEngine.initialize()` in [createEqualizer()](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt#68-92), `spatialEngine.release()` in [releaseInternal()](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt#213-222).
+
+> [!IMPORTANT]
+> **⚙️ MANUAL INTERVENTION — 3-MODE LISTEN TEST**
+> After wiring, verify three stacked scenarios by ear:
+> 1. **Spatial only, AutoEQ off** → should sound wider/more external vs flat
+> 2. **Spatial + AutoEQ (e.g., Electronic)** → spatial should add depth without fighting the high-shelf of the Electronic preset
+> 3. **Spatial + Custom Tuning (e.g., bass boosted)** → bass boost should survive; pinna notch should still be audible
+> Check on **closed-back headphones** (pinna notch is most audible here), and on **earbuds** (effect should still be present but subtler).
+
+---
+
+## Phase 5 — Service Integration
+
+**File:** [AudioEngineServiceLocal.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/service/AudioEngineServiceLocal.kt)
+
+- [ ] **5.1** In [observePreferences()](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/service/AudioEngineServiceLocal.kt#112-137), add two collectors (identical pattern to existing `customBassFlow` etc.):
+  ```kotlin
+  scope.launch {
+      userPreferencesRepository.spatialEnabledFlow.collect {
+          eqEngine.isSpatialEnabled = it
+          debouncedForceReapply()
+      }
+  }
+  scope.launch {
+      userPreferencesRepository.spatialLevelFlow.collect {
+          eqEngine.spatialLevel = it
+          debouncedForceReapply()
+      }
+  }
+  ```
+
+> [!NOTE]
+> Zero other service changes needed. Spatial is fully decoupled from genre detection.
+
+---
+
+## Phase 6 — UI / UX
+
+**Files:** `ui/components/SpatialAudioCard.kt` *(🆕 NEW)*, [MainActivity.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/MainActivity.kt)
+
+### 6.1 — `SpatialAudioCard.kt`
+
+Compose card modeled on [CustomTuningCard.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/ui/components/CustomTuningCard.kt):
+- **Header:** headphone/waveform icon + `"Spatial Audio"` title + `"Best with headphones 🎧"` subtext + toggle switch
+- **Expanded body** (toggle ON):
+  - Discrete 5-step slider (`steps = 4`, range `1f..5f`, snaps to integers)
+  - Below slider: level name + one-line description (e.g., *"Balanced — wide soundstage, natural depth"*)
+  - Active glow indicator when ON (reuse glow animation pattern from [HeroSection.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/ui/components/HeroSection.kt))
+- **Collapsed** when toggle is OFF (no slider visible)
+
+### 6.2 — [MainActivity.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/MainActivity.kt)
+
+- Collect `spatialEnabledFlow` + `spatialLevelFlow` as Compose [State](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/service/AudioEngineServiceLocal.kt#78-111)
+- Callbacks: `onSpatialEnabledChanged`, `onSpatialLevelChanged` → call `repository.save*()`
+- Insert `SpatialAudioCard(...)` **below `EqEngineCard`, above `CustomTuningCard`**
+
+> [!IMPORTANT]
+> **⚙️ MANUAL INTERVENTION — UX REVIEW**
+> 1. Confirm card placement order is logical for the user's mental model
+> 2. Verify slider discrete snap feel — should click cleanly between 5 steps
+> 3. Check level description text fits on smallest target screen (5" ~360dp wide)
+> 4. Decide: should the `"Best with headphones 🎧"` subtext appear even when collapsed?
+
+---
+
+## Phase 7 — Safety & Device Compatibility
+
+- [ ] **7.1** Clamp audit: `applyPsychoacousticDelta()` must always return within `[minLevel, maxLevel]`
+- [ ] **7.2** `PresetReverb` must be guarded: if `IllegalArgumentException`, set `reverbSupported = false`, log warning, continue silently
+- [ ] **7.3** Verify `spatialEngine.release()` is always invoked in service [onDestroy()](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/service/AudioEngineServiceLocal.kt#71-77)
+
+> [!IMPORTANT]
+> **⚙️ MANUAL INTERVENTION — OEM DEVICE MATRIX**
+> Test **all 6 spatial levels** (toggle ON/OFF 5× rapid, level changes rapid) on:
+> - **Google Pixel** (baseline, stock Android)
+> - **Samsung Galaxy** (One UI — reverb usually supported)
+> - **Motorola** (known `AudioEffect` session quirks — already has [reinitialize()](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt#52-67) hacks)
+> - **Budget OEM** (Xiaomi/Realme — may throw on `PresetReverb` init)
+>
+> Verify: no crash, no audio glitch, reverb fallback graceful.
+
+---
+
+## File Change Summary
+
+| File | Status | Phase |
+|------|--------|-------|
+| `audio/SpatialProfile.kt` | 🆕 NEW | 2 |
+| `audio/SpatialEngine.kt` | 🆕 NEW | 3 |
+| [audio/EqEngine.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt) | ✏️ MODIFY | 4 |
+| [data/UserPreferencesRepository.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/data/UserPreferencesRepository.kt) | ✏️ MODIFY | 1 |
+| [service/AudioEngineServiceLocal.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/service/AudioEngineServiceLocal.kt) | ✏️ MODIFY | 5 |
+| `ui/components/SpatialAudioCard.kt` | 🆕 NEW | 6 |
+| [MainActivity.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/MainActivity.kt) | ✏️ MODIFY | 6 |
+
+---
+
+## Manual Intervention Checkpoints Summary
+
+| # | Phase | What | When |
+|---|-------|------|------|
+| 1 | 2 | **Ear-tune** pinna notch depths, torso warmth, reverb RT60 by genre | After Phase 3 wired |
+| 2 | 4 | **3-mode listen** (Spatial only / +AutoEQ / +Custom Tuning) on closed-back + earbuds | After Phase 4 |
+| 3 | 6 | **UX review** — card order, slider snap feel, label sizing | After Phase 6 |
+| 4 | 7 | **OEM device matrix** — Pixel, Samsung, Motorola, budget Android | Final |
