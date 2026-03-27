@@ -34,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
     onBackground = LightSurfaceText,
     onSurface = LightSurfaceText,
     surfaceVariant = SoftWhiteBackground,
-    onSurfaceVariant = Color.DarkGray.copy(alpha = 0.7f)
+    onSurfaceVariant = LightSurfaceTextSecondary
 )
 
 @Composable

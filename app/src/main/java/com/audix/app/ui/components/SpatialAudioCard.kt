@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.audix.app.ui.theme.InactiveGrey
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -72,7 +73,7 @@ fun SpatialAudioCard(
                         .padding(vertical = 8.dp, horizontal = 4.dp)
                 ) {
                     SpatialIcon(
-                        color = if (isSpatialEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isSpatialEnabled) MaterialTheme.colorScheme.primary else InactiveGrey,
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -81,12 +82,12 @@ fun SpatialAudioCard(
                             text = "Spatial Audio",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (isSpatialEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            color = if (isSpatialEnabled) MaterialTheme.colorScheme.primary else InactiveGrey
                         )
                         Text(
                             text = "Best with headphones",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isSpatialEnabled) MaterialTheme.colorScheme.primary else InactiveGrey
                         )
                     }
                 }
@@ -158,7 +159,7 @@ fun SpatialAudioCard(
                                 Text(
                                     text = "${spatialLevel.coerceIn(1, 5)} / 5",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
@@ -170,6 +171,7 @@ fun SpatialAudioCard(
                                 onValueChange = { onSpatialLevelChange(kotlin.math.round(it).toInt()) },
                                 valueRange = 1f..5f,
                                 steps = 3, // 3 intermediate steps => snaps at 1, 2, 3, 4, 5
+                                dotPositions = listOf(1f, 2f, 3f, 4f, 5f),
                                 modifier = Modifier.fillMaxWidth()
                             )
 
@@ -183,7 +185,7 @@ fun SpatialAudioCard(
                                 text = displayProfile.name,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(

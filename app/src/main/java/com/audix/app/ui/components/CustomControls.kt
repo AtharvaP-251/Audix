@@ -28,24 +28,37 @@ fun AudixSlider(
     steps: Int = 0,
     enabled: Boolean = true,
     isBipolar: Boolean = false,
+    dotPositions: List<Float>? = null,
     modifier: Modifier = Modifier
 ) {
 
     val view = LocalView.current
     val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
 
+    val customTrackModifier = Modifier.drawBehind {
+        val trackHeight = 4.dp.toPx()
+        val thumbRadius = 10.dp.toPx()
+        val trackStart = thumbRadius
+        val trackEnd = size.width - thumbRadius
+        val trackWidth = trackEnd - trackStart
 
-    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+        val rangeSpan = valueRange.endInclusive - valueRange.start
 
-    val bipolarModifier = if (isBipolar) {
-        Modifier.drawBehind {
-            val trackHeight = 4.dp.toPx()
-            val thumbRadius = 10.dp.toPx() // Standard M3 thumb is ~20dp width
-            val trackStart = thumbRadius
-            val trackEnd = size.width - thumbRadius
-            val trackWidth = trackEnd - trackStart
+        // Draw background dots if provided
+        dotPositions?.forEach { dotVal ->
+            val fraction = (dotVal - valueRange.start) / rangeSpan
+            val x = trackStart + (trackWidth * fraction)
+            
+            // Draw a small dot at the specified position
+            drawCircle(
+                color = inactiveColor.copy(alpha = 0.6f),
+                radius = 2.dp.toPx(),
+                center = Offset(x, size.height / 2)
+            )
+        }
 
-            val rangeSpan = valueRange.endInclusive - valueRange.start
+        if (isBipolar) {
             // Zero point position
             val zeroFraction = (0f - valueRange.start) / rangeSpan
             val zeroX = trackStart + (trackWidth * zeroFraction)
@@ -84,7 +97,7 @@ fun AudixSlider(
                 cap = StrokeCap.Round
             )
         }
-    } else Modifier
+    }
 
     Slider(
         value = value,
@@ -108,14 +121,14 @@ fun AudixSlider(
         colors = SliderDefaults.colors(
             thumbColor = MaterialTheme.colorScheme.primary,
             activeTrackColor = if (isBipolar) Color.Transparent else MaterialTheme.colorScheme.primary,
-            inactiveTrackColor = if (isBipolar) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-            activeTickColor = if (isBipolar) Color.Transparent else SliderDefaults.colors().activeTickColor,
-            inactiveTickColor = if (isBipolar) Color.Transparent else SliderDefaults.colors().inactiveTickColor,
+            inactiveTrackColor = if (isBipolar) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+            activeTickColor = Color.Transparent,
+            inactiveTickColor = Color.Transparent,
             disabledThumbColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             disabledActiveTrackColor = if (isBipolar) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
             disabledInactiveTrackColor = if (isBipolar) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
         ),
-        modifier = modifier.then(bipolarModifier)
+        modifier = modifier.then(customTrackModifier)
     )
 }
 
@@ -137,7 +150,7 @@ fun AudixSwitch(
         colors = SwitchDefaults.colors(
             checkedThumbColor = Color.White,
             checkedTrackColor = MaterialTheme.colorScheme.primary,
-            uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
             uncheckedBorderColor = Color.Transparent
         ),

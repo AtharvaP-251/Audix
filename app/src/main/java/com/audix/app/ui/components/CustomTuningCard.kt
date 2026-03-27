@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.Alignment
+import com.audix.app.ui.theme.InactiveGrey
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
@@ -73,14 +74,14 @@ fun CustomTuningCard(
                     Icon(
                         imageVector = Icons.Default.Tune,
                         contentDescription = "Custom Tuning",
-                        tint = if (isCustomTuningEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (isCustomTuningEnabled) MaterialTheme.colorScheme.primary else InactiveGrey
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "Custom Tuning",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (isCustomTuningEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        color = if (isCustomTuningEnabled) MaterialTheme.colorScheme.primary else InactiveGrey
                     )
 
                     // Reset button: visible when the card is expanded.

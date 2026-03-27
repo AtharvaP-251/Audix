@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.graphics.*
+import com.audix.app.ui.theme.InactiveGrey
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,7 +63,7 @@ fun EqEngineCard(
                         .padding(vertical = 8.dp, horizontal = 4.dp)
                 ) {
                     AudixEqLogo(
-                        color = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else InactiveGrey,
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -70,7 +71,7 @@ fun EqEngineCard(
                         text = "Audix EQ Engine",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        color = if (isAutoEqEnabled) MaterialTheme.colorScheme.primary else InactiveGrey
                     )
                 }
 
@@ -146,10 +147,12 @@ fun EqEngineCard(
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             AudixSlider(
-                                value = eqIntensity,
+                                value = eqIntensity.coerceAtLeast(0.1f),
                                 onValueChange = onIntensityChange,
                                 onValueChangeFinished = onIntensityChangeFinished,
-                                steps = 9,
+                                valueRange = 0.1f..1.0f,
+                                steps = 8,
+                                dotPositions = listOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f),
                                 modifier = Modifier.fillMaxWidth()
                             )
 

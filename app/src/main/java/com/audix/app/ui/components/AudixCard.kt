@@ -19,9 +19,9 @@ fun AudixCard(
     content: @Composable BoxScope.() -> Unit
 ) {
     val borderColor = if (isHighlighted) 
-        Color.White.copy(alpha = 0.25f) 
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f) 
     else 
-        Color.White.copy(alpha = 0.1f)
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
         
     val borderWidth = if (isHighlighted) 1.dp else 0.5.dp
 
@@ -47,7 +47,7 @@ fun AudixInnerCard(modifier: Modifier = Modifier, content: @Composable BoxScope.
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
-                color = Color.White.copy(alpha = 0.1f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
                 shape = RoundedCornerShape(16.dp)
             ),
         content = content
