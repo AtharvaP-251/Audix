@@ -241,12 +241,14 @@ open class AudioEngineServiceLocal : Service() {
                     val auto = userPreferencesRepository.autoEqEnabledFlow.first()
                     val spatial = userPreferencesRepository.spatialEnabledFlow.first()
                     val level = userPreferencesRepository.spatialLevelFlow.first()
-                    Pair(Triple(custom, auto, spatial), level)
+                    val apiKey = userPreferencesRepository.geminiApiKeyFlow.first()
+                    Pair(Triple(custom, auto, spatial), Pair(level, apiKey))
                 }
                 val isCustomTuning = preferences.first.first
                 val isAutoEq = preferences.first.second
                 val isSpatial = preferences.first.third
-                val spatialLevel = preferences.second
+                val spatialLevel = preferences.second.first
+                val geminiApiKey = preferences.second.second
 
                 // Sync spatial state to engine before any processing
                 eqEngine.isSpatialEnabled = isSpatial
@@ -321,7 +323,7 @@ open class AudioEngineServiceLocal : Service() {
                         "Offline"
                     } else {
                         withContext(Dispatchers.IO) {
-                            try { genreDetector.detectGenre(title, artist) } catch (e: Exception) { "Error: Failed" }
+                            try { genreDetector.detectGenre(title, artist, geminiApiKey) } catch (e: Exception) { "Error: Failed" }
                         }
                     }
                 } ?: "Error: Timeout"

@@ -155,6 +155,9 @@ fun EqControls(
     val spatialLevelPref by userPreferencesRepository.spatialLevelFlow.collectAsState(initial = 0)
     var spatialLevelPosition by remember(spatialLevelPref) { mutableStateOf(spatialLevelPref) }
 
+    val geminiApiKey by userPreferencesRepository.geminiApiKeyFlow.collectAsState(initial = null)
+    var tempGeminiApiKey by remember(geminiApiKey) { mutableStateOf(geminiApiKey ?: "") }
+
     // Expansion states for footer visibility logic
     var isEqExpanded by remember { mutableStateOf(isAutoEqEnabled) }
     var isSpatialExpanded by remember { mutableStateOf(isSpatialEnabled) }
@@ -211,6 +214,7 @@ fun EqControls(
 
     var showSettingsDialog by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
+    var showApiKeyDialog by remember { mutableStateOf(false) }
 
     // Phase 12: Onboarding Dialog
     if (showOnboarding) {
@@ -529,6 +533,15 @@ fun EqControls(
                             context.startActivity(intent)
                         }
                     )
+                    HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                    val maskedKey = if (geminiApiKey.isNullOrBlank()) "Not Set (Using Default)" 
+                                   else geminiApiKey!!.take(4) + "..." + geminiApiKey!!.takeLast(4)
+                    SettingsClickRow(
+                        title = "Gemini API Key",
+                        statusText = maskedKey,
+                        isGranted = !geminiApiKey.isNullOrBlank(),
+                        onClick = { showApiKeyDialog = true }
+                    )
                 }
             },
             confirmButton = {
@@ -536,12 +549,60 @@ fun EqControls(
             }
         )
     }
+
+    if (showApiKeyDialog) {
+        AlertDialog(
+            onDismissRequest = { showApiKeyDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
+            title = {
+                Text(
+                    "Gemini API Key",
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "Enter your own Gemini API key for smarter genre detection. Leave blank to use the default app key.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedTextField(
+                        value = tempGeminiApiKey,
+                        onValueChange = { tempGeminiApiKey = it },
+                        label = { Text("API Key") },
+                        placeholder = { Text("AIza...") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            userPreferencesRepository.saveGeminiApiKey(tempGeminiApiKey.trim())
+                            showApiKeyDialog = false
+                        }
+                    }
+                ) {
+                    Text("Save Key")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    tempGeminiApiKey = geminiApiKey ?: ""
+                    showApiKeyDialog = false 
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
-
-
-
-
-
 
 @Composable
 private fun OnboardingStep(number: String, title: String, description: String) {

@@ -1,0 +1,60 @@
+# User-Provided Gemini API Key Implementation Plan
+
+Users should be able to provide their own Gemini API key in real-time. This key will be used for genre detection, replacing or augmenting the default key.
+
+## User Review Required
+
+> [!IMPORTANT]
+> - The API key will be stored locally on the device using Jetpack DataStore.
+> - If no user key is provided, the app will fallback to the default key provided in `BuildConfig.GEMINI_API_KEY`.
+> - The UI will include a way to see the current key (masked) and update it.
+
+## Proposed Changes
+
+---
+
+### Core Data & Storage
+
+#### [MODIFY] [UserPreferencesRepository](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/data/UserPreferencesRepository.kt)
+- Add `GEMINI_API_KEY` preference key.
+- Add `geminiApiKeyFlow` to expose the stored API key.
+- Add `saveGeminiApiKey(key: String)` to persist changes.
+
+---
+
+### Domain Logic
+
+#### [MODIFY] [GenreDetector](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/domain/GenreDetector.kt)
+- Change `detectGenre` method signature to `suspend fun detectGenre(title: String, artist: String, apiKey: String? = null): String?`.
+- Ensure it uses the passed `apiKey` or `BuildConfig.GEMINI_API_KEY` if `apiKey` is null.
+
+---
+
+### Service Layer
+
+#### [MODIFY] [AudioEngineServiceLocal](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/service/AudioEngineServiceLocal.kt)
+- In `applyEqForSong`, fetch the current API key from `UserPreferencesRepository`.
+- Provide the key to `genreDetector.detectGenre`.
+
+---
+
+### UI Layer
+
+#### [MODIFY] [MainActivity](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/MainActivity.kt)
+- **Settings Dialog**: Add a new row: "Gemini API Key".
+- **API Key Dialog**: Create a sub-dialog (or inline expansion) to enter and save the Gemini API key.
+- **Masking**: Mask the API key in the settings row for security (e.g., "AIza...v8x").
+
+## Open Questions
+
+- Should we validate the API key format before saving? (Gemini keys usually start with `AIza`).
+- Should we provide a way to "Reset to Default"?
+
+## Verification Plan
+
+### Manual Verification
+- Launch the app and navigate to Settings.
+- Verify the Gemini API key row exists.
+- Enter a key and save.
+- Close and reopen Settings to ensure it persisted.
+- Verify that genre detection still works (or provides appropriate error if the key is invalid).

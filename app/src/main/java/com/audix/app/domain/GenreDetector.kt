@@ -43,7 +43,8 @@ class GenreDetector(private val songCacheDao: SongCacheDao) {
         api = retrofit.create(GeminiApi::class.java)
     }
 
-    suspend fun detectGenre(title: String, artist: String): String? {
+    suspend fun detectGenre(title: String, artist: String, apiKey: String? = null): String? {
+        val keyToUse = if (!apiKey.isNullOrBlank()) apiKey else BuildConfig.GEMINI_API_KEY
         val cached = songCacheDao.getGenreForSong(title, artist)
         if (cached != null) {
             Log.d(TAG, "Cache hit for '$title' by '$artist': $cached")
@@ -68,7 +69,7 @@ Artist:$artist
         )
 
         return try {
-            val response = api.generateContent(BuildConfig.GEMINI_API_KEY, request)
+            val response = api.generateContent(keyToUse, request)
             val genre = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text?.trim()
             if (genre != null) {
                 Log.d(TAG, "Detected genre for '$title' by '$artist': $genre")

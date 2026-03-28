@@ -24,6 +24,7 @@ class UserPreferencesRepository(private val context: Context) {
         val ONBOARDING_SHOWN = booleanPreferencesKey("onboarding_shown")
         val SPATIAL_ENABLED = booleanPreferencesKey("spatial_enabled")
         val SPATIAL_LEVEL   = intPreferencesKey("spatial_level")   // 0–5
+        val GEMINI_API_KEY  = androidx.datastore.preferences.core.stringPreferencesKey("gemini_api_key")
     }
 
     val eqIntensityFlow: Flow<Float> = context.dataStore.data
@@ -53,6 +54,9 @@ class UserPreferencesRepository(private val context: Context) {
 
     val spatialLevelFlow: Flow<Int> = context.dataStore.data
         .map { preferences -> preferences[SPATIAL_LEVEL] ?: 3 }
+
+    val geminiApiKeyFlow: Flow<String?> = context.dataStore.data
+        .map { preferences -> preferences[GEMINI_API_KEY] }
 
     suspend fun saveEqIntensity(intensity: Float) {
         context.dataStore.edit { preferences -> preferences[EQ_INTENSITY] = intensity }
@@ -88,5 +92,15 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun saveSpatialLevel(level: Int) {
         context.dataStore.edit { preferences -> preferences[SPATIAL_LEVEL] = level }
+    }
+
+    suspend fun saveGeminiApiKey(key: String?) {
+        context.dataStore.edit { preferences -> 
+            if (key.isNullOrBlank()) {
+                preferences.remove(GEMINI_API_KEY)
+            } else {
+                preferences[GEMINI_API_KEY] = key
+            }
+        }
     }
 }
