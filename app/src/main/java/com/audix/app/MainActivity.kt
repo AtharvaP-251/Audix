@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                         EqControls(
                             userPreferencesRepository = userPreferencesRepository,
+                            isHeadphonesConnected = SongState.isHeadphonesConnected.collectAsState().value,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -93,7 +94,11 @@ fun GuideStep(number: String, text: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: Modifier = Modifier) {
+fun EqControls(
+    userPreferencesRepository: UserPreferencesRepository,
+    isHeadphonesConnected: Boolean,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
@@ -337,35 +342,7 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2b. Spatial Audio Card
-            com.audix.app.ui.components.SpatialAudioCard(
-                isSpatialEnabled = isSpatialEnabled,
-                onSpatialEnabledChange = { enabled ->
-                    isSpatialEnabled = enabled
-                    coroutineScope.launch {
-                        userPreferencesRepository.saveSpatialEnabled(enabled)
-                        // If turning ON and level is 0, default to 3 (Balanced)
-                        if (enabled && spatialLevelPosition == 0) {
-                            spatialLevelPosition = 3
-                            userPreferencesRepository.saveSpatialLevel(3)
-                        }
-                    }
-                },
-                spatialLevel = spatialLevelPosition,
-                onSpatialLevelChange = {
-                    spatialLevelPosition = it
-                    coroutineScope.launch {
-                        userPreferencesRepository.saveSpatialLevel(it)
-                    }
-                },
-                isExpanded = isSpatialExpanded,
-                onExpandedChange = { isSpatialExpanded = it },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 3. Secondary Card: Custom Tuning
+            // 2. Secondary Card: Custom Tuning
             com.audix.app.ui.components.CustomTuningCard(
                 isCustomTuningEnabled = isCustomTuningEnabled,
                 onCustomTuningChange = {
@@ -392,6 +369,35 @@ fun EqControls(userPreferencesRepository: UserPreferencesRepository, modifier: M
                 },
                 isExpanded = isCustomExpanded,
                 onExpandedChange = { isCustomExpanded = it },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 3. Spatial Audio Card
+            com.audix.app.ui.components.SpatialAudioCard(
+                isSpatialEnabled = isSpatialEnabled,
+                isHeadphonesConnected = isHeadphonesConnected,
+                onSpatialEnabledChange = { enabled ->
+                    isSpatialEnabled = enabled
+                    coroutineScope.launch {
+                        userPreferencesRepository.saveSpatialEnabled(enabled)
+                        // If turning ON and level is 0, default to 3 (Balanced)
+                        if (enabled && spatialLevelPosition == 0) {
+                            spatialLevelPosition = 3
+                            userPreferencesRepository.saveSpatialLevel(3)
+                        }
+                    }
+                },
+                spatialLevel = spatialLevelPosition,
+                onSpatialLevelChange = {
+                    spatialLevelPosition = it
+                    coroutineScope.launch {
+                        userPreferencesRepository.saveSpatialLevel(it)
+                    }
+                },
+                isExpanded = isSpatialExpanded,
+                onExpandedChange = { isSpatialExpanded = it },
                 modifier = Modifier.fillMaxWidth()
             )
 

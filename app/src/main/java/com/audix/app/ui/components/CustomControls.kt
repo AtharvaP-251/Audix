@@ -136,6 +136,7 @@ fun AudixSlider(
 fun AudixSwitch(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
@@ -145,6 +146,7 @@ fun AudixSwitch(
             view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             onCheckedChange?.invoke(it)
         },
+        enabled = enabled,
 
 
         colors = SwitchDefaults.colors(

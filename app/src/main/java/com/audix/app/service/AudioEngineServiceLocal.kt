@@ -47,6 +47,7 @@ open class AudioEngineServiceLocal : Service() {
     private lateinit var userPreferencesRepository: UserPreferencesRepository
     private lateinit var genreDetector: GenreDetector
     private lateinit var db: AppDatabase
+    private lateinit var headphoneDetector: com.audix.app.audio.HeadphoneDetector
 
     override fun onCreate() {
         super.onCreate()
@@ -58,8 +59,12 @@ open class AudioEngineServiceLocal : Service() {
         eqEngine = EqEngine()
         eqEngine.initialize()
 
+        headphoneDetector = com.audix.app.audio.HeadphoneDetector(applicationContext)
+        headphoneDetector.start()
+
         observeState()
         observePreferences()
+        observeHardware()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -72,6 +77,7 @@ open class AudioEngineServiceLocal : Service() {
         super.onDestroy()
         job.cancel()
         eqEngine.release()
+        headphoneDetector.stop()
         SongState.isDetectingGenre.value = false
     }
 
@@ -143,6 +149,16 @@ open class AudioEngineServiceLocal : Service() {
             userPreferencesRepository.spatialLevelFlow.collect {
                 eqEngine.spatialLevel = it
                 debouncedForceReapply()
+            }
+        }
+    }
+
+    private fun observeHardware() {
+        scope.launch {
+            headphoneDetector.isHeadphonesConnected.collect { isConnected ->
+                SongState.isHeadphonesConnected.value = isConnected
+                eqEngine.isHeadphonesConnected = isConnected
+                Log.d("AudioEngine", "Headphone state synced to engine: $isConnected")
             }
         }
     }

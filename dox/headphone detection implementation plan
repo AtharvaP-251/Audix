@@ -1,0 +1,58 @@
+# Implementation Plan - Headphone Detection & Spatial Audio Guard
+
+This plan implements real-time detection of headphones (wired or Bluetooth A2DP) to gated the Spatial Audio feature. This ensures a consistent user experience by preventing binaural effects on speakers or car audio systems.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Gating Logic**: Spatial Audio will be automatically "muted" at the DSP level if headphones are disconnected, even if the user has the toggle "ON".
+> **UI Interaction**: The Spatial Audio card will be semi-transparent and non-expandable when headphones are not detected, with a clear "Headphones Required" message.
+
+## Proposed Changes
+
+### Core Logic & State
+
+#### [NEW] [HeadphoneDetector.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/HeadphoneDetector.kt)
+- Use `AudioManager.registerAudioDeviceCallback` for real-time updates.
+- Check initial state using `AudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)`.
+- Use `AudioDeviceInfo.TYPE_WIRED_HEADSET`, `TYPE_WIRED_HEADPHONES`, `TYPE_BLUETOOTH_A2DP`, `TYPE_USB_HEADSET`.
+
+#### [MODIFY] [SongState.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/state/SongState.kt)
+- Add `isHeadphonesConnected: MutableStateFlow<Boolean>` to the global state object.
+
+### Service & Engine Integration
+
+#### [MODIFY] [AudioEngineServiceLocal.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/service/AudioEngineServiceLocal.kt)
+- Initialize `HeadphoneDetector` in `onCreate`.
+- Sync detector state to `SongState`.
+- Update `eqEngine.reapplyCurrentEq()` when headphone state changes.
+
+#### [MODIFY] [EqEngine.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/audio/EqEngine.kt)
+- Add `isHeadphonesConnected` flag.
+- Gate the `applyPsychoacousticDelta` and `setReverb` calls behind this flag.
+
+---
+
+### UI Enhancements
+
+#### [MODIFY] [MainActivity.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/MainActivity.kt)
+- Collect `isHeadphonesConnected` from `SongState`.
+- Pass it down to the `EqControls` and then to the `SpatialAudioCard`.
+
+#### [MODIFY] [SpatialAudioCard.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audix/app/ui/components/SpatialAudioCard.kt)
+- Update parameter list to include `isHeadphonesConnected: Boolean`.
+- If `isHeadphonesConnected` is false:
+    - Reduce `alpha` to 0.5.
+    - Disable the toggle switch.
+    - Block card expansion.
+    - Change description to "Connect headphones to enable".
+
+## Verification Plan
+
+### Manual Verification
+- **Wired Headset**: Plug in 3.5mm jack. Verify Spatial Audio card enables immediately.
+- **Bluetooth A2DP**: Connect Bluetooth headphones. Verify Spatial Audio card enables.
+- **USB Headset**: Connect Type-C headphones. Verify Spatial Audio card enables.
+- **Speaker Mode**: Disconnect all peripherals. Verify Spatial Audio card is greyed out.
+- **App Start**: Launch app with headphones already connected vs. disconnected. Verify correct initial state.
+- **Real-time Toggle**: Connect/disconnect while music is playing. Ensure audio effects update instantly.

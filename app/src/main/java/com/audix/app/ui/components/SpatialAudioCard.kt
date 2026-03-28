@@ -34,6 +34,7 @@ import com.audix.app.audio.SpatialProfileLibrary
 @Composable
 fun SpatialAudioCard(
     isSpatialEnabled: Boolean,
+    isHeadphonesConnected: Boolean,
     onSpatialEnabledChange: (Boolean) -> Unit,
     spatialLevel: Int,
     onSpatialLevelChange: (Int) -> Unit,
@@ -49,8 +50,8 @@ fun SpatialAudioCard(
     )
 
     AudixCard(
-        modifier = modifier,
-        isHighlighted = isSpatialEnabled
+        modifier = modifier.graphicsLayer { alpha = if (isHeadphonesConnected) 1.0f else 0.5f },
+        isHighlighted = isSpatialEnabled && isHeadphonesConnected
     ) {
 
         Column(
@@ -69,11 +70,11 @@ fun SpatialAudioCard(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .clickable { onExpandedChange(!isExpanded) }
+                        .clickable(enabled = isHeadphonesConnected) { onExpandedChange(!isExpanded) }
                         .padding(vertical = 8.dp, horizontal = 4.dp)
                 ) {
                     SpatialIcon(
-                        color = if (isSpatialEnabled) MaterialTheme.colorScheme.primary else InactiveGrey,
+                        color = if (isSpatialEnabled && isHeadphonesConnected) MaterialTheme.colorScheme.primary else InactiveGrey,
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -82,12 +83,12 @@ fun SpatialAudioCard(
                             text = "Spatial Audio",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (isSpatialEnabled) MaterialTheme.colorScheme.primary else InactiveGrey
+                            color = if (isSpatialEnabled && isHeadphonesConnected) MaterialTheme.colorScheme.primary else InactiveGrey
                         )
                         Text(
-                            text = "Best with headphones",
+                            text = if (isHeadphonesConnected) "Best with headphones" else "Headphones Required",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (isSpatialEnabled) MaterialTheme.colorScheme.primary else InactiveGrey
+                            color = if (isSpatialEnabled && isHeadphonesConnected) MaterialTheme.colorScheme.primary else InactiveGrey
                         )
                     }
                 }
@@ -103,7 +104,8 @@ fun SpatialAudioCard(
 
                 // Toggle Area
                 AudixSwitch(
-                    checked = isSpatialEnabled,
+                    checked = isSpatialEnabled && isHeadphonesConnected,
+                    enabled = isHeadphonesConnected,
                     onCheckedChange = { newValue ->
                         isFirstComposition = false
                         onSpatialEnabledChange(newValue)

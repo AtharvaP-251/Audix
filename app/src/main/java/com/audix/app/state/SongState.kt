@@ -14,4 +14,5 @@ object SongState {
     val isPlaying = MutableStateFlow(false)
     val isServiceConnected = MutableStateFlow(false)
     val isDetectingGenre = MutableStateFlow(false)
+    val isHeadphonesConnected = MutableStateFlow(false)
 }
