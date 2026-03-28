@@ -483,14 +483,15 @@ fun EqControls(
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    GuideStep("1", "Play music in Spotify or YouTube Music to automatically apply Audix EQ.")
-                    GuideStep("2", "Enable AutoEQ to let the smart engine balance sound in real-time.")
-                    GuideStep("3", "Use Custom Tuning to override defaults and boost Bass, Vocals, or Treble.")
-                    GuideStep("4", "Grant battery exemptions to keep Audix running in the background.")
+                    GuideStep("1", "Play music in Spotify or YouTube Music. Audix detects your tracks automatically.")
+                    GuideStep("2", "Enable AutoEQ for an intelligent, zero-config experience. The engine adapts its signature in real-time based on the detected genre.")
+                    GuideStep("3", "Use Spatial Audio for an immersive 3D soundscape. Note: This feature is only available when headphones are connected.")
+                    GuideStep("4", "Take control with Custom Tuning. Manually adjust Bass, Vocals, and Treble to your personal preference.")
+                    GuideStep("5", "Grant background autostart and battery exemptions to ensure the EQ engine remains active even when the app is closed.")
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showInfoDialog = false }) { Text("Close") }
+                TextButton(onClick = { showInfoDialog = false }) { Text("Got it") }
             }
         )
     }
