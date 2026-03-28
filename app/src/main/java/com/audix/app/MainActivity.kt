@@ -26,7 +26,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -215,6 +217,7 @@ fun EqControls(
     var showSettingsDialog by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
     var showApiKeyDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
 
     // Phase 12: Onboarding Dialog
     if (showOnboarding) {
@@ -543,6 +546,13 @@ fun EqControls(
                         isGranted = !geminiApiKey.isNullOrBlank(),
                         onClick = { showApiKeyDialog = true }
                     )
+                    HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                    SettingsClickRow(
+                        title = "About Audix",
+                        statusText = "Version ${BuildConfig.VERSION_NAME}",
+                        isGranted = null,
+                        onClick = { showAboutDialog = true }
+                    )
                 }
             },
             confirmButton = {
@@ -602,6 +612,9 @@ fun EqControls(
                 }
             }
         )
+    }
+    if (showAboutDialog) {
+        AboutDialog(onDismiss = { showAboutDialog = false })
     }
 }
 
@@ -667,6 +680,109 @@ fun SettingsClickRow(
             imageVector = Icons.Default.KeyboardArrowRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+@Composable
+fun AboutDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        title = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    "audix",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp
+                )
+                Text(
+                    "VERSION ${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(
+                    "Intelligent real time audio enhancement for an immersive listening experience",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 20.sp
+                )
+                
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    AboutLinkRow(
+                        title = "Privacy Policy",
+                        icon = Icons.Outlined.Lock,
+                        onClick = { 
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/AtharvaP-251/Audix-Lab/blob/main/PRIVACY_POLICY.md"))
+                            context.startActivity(intent)
+                        }
+                    )
+                    AboutLinkRow(
+                        title = "GitHub Repository",
+                        icon = Icons.Outlined.Code,
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/AtharvaP-251/Audix-Lab"))
+                            context.startActivity(intent)
+                        }
+                    )
+                }
+
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Developed by Audix Labs",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Back") }
+        }
+    )
+}
+
+@Composable
+fun AboutLinkRow(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+            modifier = Modifier.size(20.dp)
+        )
+        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
             modifier = Modifier.size(18.dp)
         )
     }
