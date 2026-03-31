@@ -42,8 +42,7 @@ fun SpatialAudioCard(
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Track whether this is the first composition to skip the initial animation
-    var isFirstComposition by remember { mutableStateOf(true) }
+    val view = androidx.compose.ui.platform.LocalView.current
 
     val profile = SpatialProfileLibrary.getProfile(
         if (isSpatialEnabled) spatialLevel.coerceIn(1, 5) else 0
@@ -53,7 +52,6 @@ fun SpatialAudioCard(
         modifier = modifier.graphicsLayer { alpha = if (isHeadphonesConnected) 1.0f else 0.5f },
         isHighlighted = isSpatialEnabled && isHeadphonesConnected
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -70,13 +68,24 @@ fun SpatialAudioCard(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .clickable(enabled = isHeadphonesConnected) { onExpandedChange(!isExpanded) }
+                        .clickable(enabled = isHeadphonesConnected) { 
+                            view.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+                            onExpandedChange(!isExpanded) 
+                        }
                         .padding(vertical = 8.dp, horizontal = 4.dp)
                 ) {
-                    SpatialIcon(
-                        color = if (isSpatialEnabled && isHeadphonesConnected) MaterialTheme.colorScheme.primary else InactiveGrey,
-                        modifier = Modifier.size(22.dp)
+                    val iconRotation by animateFloatAsState(
+                        targetValue = if (isExpanded) 90f else 0f,
+                        animationSpec = spring(stiffness = Spring.StiffnessLow),
+                        label = "iconRotate"
                     )
+
+                    Box(modifier = Modifier.graphicsLayer { rotationZ = iconRotation }) {
+                        SpatialIcon(
+                            color = if (isSpatialEnabled && isHeadphonesConnected) MaterialTheme.colorScheme.primary else InactiveGrey,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
@@ -107,42 +116,43 @@ fun SpatialAudioCard(
                     checked = isSpatialEnabled && isHeadphonesConnected,
                     enabled = isHeadphonesConnected,
                     onCheckedChange = { newValue ->
-                        isFirstComposition = false
+                        view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
                         onSpatialEnabledChange(newValue)
                     }
                 )
             }
 
-            val transition = updateTransition(targetState = isExpanded, label = "card_expansion")
-            val expansion by transition.animateFloat(
-                transitionSpec = {
-                    spring(
-                        dampingRatio = if (targetState) Spring.DampingRatioMediumBouncy else 0.8f,
-                        stiffness = if (targetState) Spring.StiffnessLow else Spring.StiffnessMediumLow
-                    )
-                },
-                label = "expansion_fraction"
-            ) { if (it) 1f else 0f }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessMediumLow
-                        )
-                    )
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + 
+                        fadeIn(animationSpec = tween(300)),
+                exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + 
+                       fadeOut(animationSpec = tween(150))
             ) {
-                if (isExpanded) {
-                    Column(
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp)
+                ) {
+                    val contentAlpha by animateFloatAsState(
+                        targetValue = if (isExpanded) 1f else 0f,
+                        animationSpec = tween(durationMillis = 400, delayMillis = 100),
+                        label = "contentAlpha"
+                    )
+                    val contentOffsetY by animateFloatAsState(
+                        targetValue = if (isExpanded) 0f else 20f,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+                        label = "contentOffset"
+                    )
+
+                    AudixInnerCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .graphicsLayer { alpha = expansion }
-                            .padding(top = 24.dp)
+                            .graphicsLayer {
+                                alpha = contentAlpha
+                                translationY = contentOffsetY
+                            }
                     ) {
-
-                    AudixInnerCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             // Slider label row
                             Row(
@@ -164,12 +174,12 @@ fun SpatialAudioCard(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Discrete 5-step slider (1..5, 4 steps between = 3 intermediate)
+                            // Discrete 5-step slider
                             AudixSlider(
                                 value = spatialLevel.coerceIn(1, 5).toFloat(),
                                 onValueChange = { onSpatialLevelChange(kotlin.math.round(it).toInt()) },
                                 valueRange = 1f..5f,
-                                steps = 3, // 3 intermediate steps => snaps at 1, 2, 3, 4, 5
+                                steps = 3,
                                 dotPositions = listOf(1f, 2f, 3f, 4f, 5f),
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -197,7 +207,6 @@ fun SpatialAudioCard(
             }
         }
     }
-}
 }
 
 

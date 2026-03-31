@@ -14,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -163,8 +164,12 @@ fun EqControls(
     var masterEnabled by remember { mutableStateOf(masterEnabledFlowValue) }
     LaunchedEffect(masterEnabledFlowValue) { masterEnabled = masterEnabledFlowValue }
 
-    val isAnyEnhancementEnabled by remember(isAutoEqEnabled, isCustomTuningEnabled, isSpatialEnabled, masterEnabled) {
-        derivedStateOf { (isAutoEqEnabled || isCustomTuningEnabled || isSpatialEnabled) && masterEnabled }
+    val canEnableService by remember(isPermissionGranted, isIgnoringBatteryOptimizations) {
+        derivedStateOf { isPermissionGranted && isIgnoringBatteryOptimizations }
+    }
+
+    val isAnyEnhancementEnabled by remember(isAutoEqEnabled, isCustomTuningEnabled, isSpatialEnabled, masterEnabled, canEnableService) {
+        derivedStateOf { (isAutoEqEnabled || isCustomTuningEnabled || isSpatialEnabled) && masterEnabled && canEnableService }
     }
     
     val spiralAlpha by animateFloatAsState(
@@ -183,12 +188,12 @@ fun EqControls(
         if (!onboardingShown) showOnboarding = true
     }
 
-    var isEqVisible by remember { mutableStateOf(masterEnabled) }
-    var isCustomVisible by remember { mutableStateOf(masterEnabled) }
-    var isSpatialVisible by remember { mutableStateOf(masterEnabled) }
+    var isEqVisible by remember { mutableStateOf(masterEnabled && canEnableService) }
+    var isCustomVisible by remember { mutableStateOf(masterEnabled && canEnableService) }
+    var isSpatialVisible by remember { mutableStateOf(masterEnabled && canEnableService) }
 
-    LaunchedEffect(masterEnabled) {
-        if (masterEnabled) {
+    LaunchedEffect(masterEnabled, canEnableService) {
+        if (masterEnabled && canEnableService) {
             isEqVisible = true
             delay(60)
             isCustomVisible = true
@@ -421,7 +426,7 @@ fun EqControls(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (!isPermissionGranted || !isServiceConnected) {
+            if (!canEnableService) {
                 androidx.compose.material3.Card(
                     colors = androidx.compose.material3.CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer
@@ -430,15 +435,44 @@ fun EqControls(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = if (!isPermissionGranted) "Notification Access Required" else "Service Disconnected",
+                            text = "Permission Required",
                             color = MaterialTheme.colorScheme.onErrorContainer,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = {
-                            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                        }) {
-                            Text("Open Settings")
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = buildString {
+                                append("Audix needs the following to apply EQ effects:")
+                                if (!isPermissionGranted) append("\n• Notification Access")
+                                if (!isIgnoringBatteryOptimizations) append("\n• Battery Optimization Exemption")
+                            },
+                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (!isPermissionGranted) {
+                                Button(
+                                    onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onErrorContainer)
+                                ) {
+                                    Text("Grant Access", color = MaterialTheme.colorScheme.errorContainer)
+                                }
+                            }
+                            if (!isIgnoringBatteryOptimizations) {
+                                OutlinedButton(
+                                    onClick = { 
+                                        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                            data = Uri.parse("package:${context.packageName}")
+                                        }
+                                        context.startActivity(intent)
+                                    },
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onErrorContainer)
+                                ) {
+                                    Text("Exempt Battery", color = MaterialTheme.colorScheme.onErrorContainer)
+                                }
+                            }
                         }
                     }
                 }
@@ -633,18 +667,23 @@ fun EqControls(
                     
                     IconButton(
                         onClick = {
-                            localView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                            val newState = !masterEnabled
-                            masterEnabled = newState
-                            
-                            if (!newState) {
-                                isEqExpanded = false
-                                isSpatialExpanded = false
-                                isCustomExpanded = false
-                            }
-                            
-                            coroutineScope.launch {
-                                userPreferencesRepository.saveMasterEnabled(newState)
+                            if (canEnableService) {
+                                localView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                                val newState = !masterEnabled
+                                masterEnabled = newState
+                                
+                                if (!newState) {
+                                    isEqExpanded = false
+                                    isSpatialExpanded = false
+                                    isCustomExpanded = false
+                                }
+                                
+                                coroutineScope.launch {
+                                    userPreferencesRepository.saveMasterEnabled(newState)
+                                }
+                            } else {
+                                // Provide negative feedback if permissions missing
+                                localView.performHapticFeedback(HapticFeedbackConstants.REJECT)
                             }
                         },
                         modifier = Modifier
@@ -818,7 +857,7 @@ fun SettingsSheetContent(
                     text = when(state) {
                         SettingsSheetState.Main -> "Settings"
                         SettingsSheetState.ApiKey -> "Gemini API Key"
-                        SettingsSheetState.About -> "About Audix"
+                        SettingsSheetState.About -> "About"
                         SettingsSheetState.Guide -> "User Guide"
                         else -> ""
                     },
@@ -1114,20 +1153,6 @@ fun AboutSettingsPage() {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.AudioFile,
-                contentDescription = null,
-                modifier = Modifier.size(40.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
