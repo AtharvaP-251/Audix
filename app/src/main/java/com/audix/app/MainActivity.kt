@@ -892,7 +892,7 @@ fun SettingsSheetContent(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 500.dp, max = 800.dp)
+            .heightIn(max = 750.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
@@ -947,7 +947,7 @@ fun SettingsSheetContent(
             ) { targetState ->
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                 ) {
                     when (targetState) {
@@ -971,7 +971,7 @@ fun SettingsSheetContent(
                         SettingsSheetState.Guide -> GuideSettingsPage()
                         else -> {}
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(24.dp).navigationBarsPadding())
                 }
             }
         }
@@ -1327,7 +1327,7 @@ fun ApiKeySettingsPage(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.AutoAwesome, 
+                    Icons.Outlined.Lightbulb, 
                     null, 
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp)
@@ -1356,9 +1356,9 @@ fun AboutSettingsPage() {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1404,7 +1404,7 @@ fun AboutSettingsPage() {
         }
         
         Box(
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -1418,7 +1418,7 @@ fun AboutSettingsPage() {
 
 @Composable
 fun GuideSettingsPage() {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         GuideStepItem("1", "Play music in Spotify or YouTube Music. Audix detects your tracks automatically.")
         GuideStepItem("2", "Enable AutoEQ for an intelligent, zero-config experience.")
         GuideStepItem("3", "Use Spatial Audio for an immersive 3D soundscape (headphone required).")
