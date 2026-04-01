@@ -269,7 +269,7 @@ fun EqControls(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val blurRadius by animateDpAsState(
-        targetValue = if (settingsSheetState != SettingsSheetState.None) 16.dp else 0.dp,
+        targetValue = if (settingsSheetState != SettingsSheetState.None || showOnboarding) 16.dp else 0.dp,
         animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "blurAnimation"
     )
@@ -290,24 +290,19 @@ fun EqControls(
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(24.dp)
+                        .padding(horizontal = 24.dp, vertical = 32.dp)
                         .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-
-                    Text(
-                        text = "Welcome to Audix",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        textAlign = TextAlign.Center
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Welcome to Audix",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
 
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         OnboardingStep(
@@ -326,37 +321,49 @@ fun EqControls(
                             description = "Audix automatically handles everything. Just press play and enjoy."
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(
-                        onClick = {
-                            showOnboarding = false
-                            coroutineScope.launch { userPreferencesRepository.saveOnboardingShown(true) }
-                            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Get Started", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    }
-                    
-                    TextButton(
-                        onClick = {
-                            showOnboarding = false
-                            coroutineScope.launch { userPreferencesRepository.saveOnboardingShown(true) }
+                        Button(
+                            onClick = {
+                                showOnboarding = false
+                                coroutineScope.launch { userPreferencesRepository.saveOnboardingShown(true) }
+                                context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                            },
+                            modifier = Modifier.height(40.dp),
+                            shape = CircleShape,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            contentPadding = PaddingValues(horizontal = 24.dp)
+                        ) {
+                            Text(
+                                text = "Get Started",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.ExtraBold
+                            )
                         }
-                    ) {
-                        Text(
-                            "Skip for now", 
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                        
+                        Button(
+                            onClick = {
+                                showOnboarding = false
+                                coroutineScope.launch { userPreferencesRepository.saveOnboardingShown(true) }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                contentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                            ),
+                            shape = CircleShape,
+                            modifier = Modifier.height(40.dp),
+                            contentPadding = PaddingValues(horizontal = 24.dp)
+                        ) {
+                            Text(
+                                text = "Skip for now", 
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
