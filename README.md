@@ -38,7 +38,7 @@ Audix is a premium, set-and-forget audio enhancement tool that automatically ada
 
 - [User Guide](USER_GUIDE.md) - Detailed feature walkthrough and troubleshooting.
 - [Privacy Policy](PRIVACY_POLICY.md) - Our commitment to your data security.
-- [License](LICENSE) - MIT License.
+- [License](LICENSE) - GNU Affero General Public License v3.0 (AGPL-3.0).
 
 ---
 
