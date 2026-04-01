@@ -64,6 +64,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.platform.LocalView
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.Canvas
@@ -957,6 +959,7 @@ fun SettingsSheetContent(
                             onShowOnboarding = onShowOnboarding
                         )
                         SettingsSheetState.ApiKey -> ApiKeySettingsPage(
+                            geminiApiKey = geminiApiKey,
                             tempGeminiApiKey = tempGeminiApiKey,
                             onTempApiKeyChange = onTempApiKeyChange,
                             onSaveApiKey = {
@@ -1178,53 +1181,167 @@ private fun openAutostartSettings(context: android.content.Context) {
 
 @Composable
 fun ApiKeySettingsPage(
+    geminiApiKey: String,
     tempGeminiApiKey: String,
     onTempApiKeyChange: (String) -> Unit,
     onSaveApiKey: () -> Unit
 ) {
+    var isEditing by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    
+    val isValid = true // Allow any key or blank to revert to default
+    
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Text(
-            "Enter your own Gemini API key for smarter genre detection. Leave blank to use the default app key.",
+            "Gemini API integration brings intelligent genre classification and smarter audio tuning to Audix.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
-        OutlinedTextField(
-            value = tempGeminiApiKey,
-            onValueChange = onTempApiKeyChange,
-            label = { Text("API Key") },
-            placeholder = { Text("AIza...") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            leadingIcon = { Icon(Icons.Default.VpnKey, null) }
-        )
-        
-        Button(
-            onClick = onSaveApiKey,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text("Save API Key", fontWeight = FontWeight.Bold)
+        AnimatedContent(
+            targetState = isEditing,
+            transitionSpec = {
+                (fadeIn(animationSpec = tween(220, delayMillis = 90)) + 
+                 scaleIn(initialScale = 0.95f, animationSpec = tween(220, delayMillis = 90))
+                ).togetherWith(fadeOut(animationSpec = tween(90)))
+            },
+            label = "ApiKeyEditTransition"
+        ) { editing ->
+            if (editing) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(
+                        value = tempGeminiApiKey,
+                        onValueChange = onTempApiKeyChange,
+                        label = { Text("API Key") },
+                        placeholder = { Text("AIza...") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        leadingIcon = { Icon(Icons.Default.VpnKey, null, tint = MaterialTheme.colorScheme.primary) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                        )
+                    )
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { 
+                                isEditing = false
+                                onTempApiKeyChange(geminiApiKey)
+                                focusManager.clearFocus()
+                            },
+                            modifier = Modifier.weight(1f).height(40.dp),
+                            shape = RoundedCornerShape(20.dp)
+                        ) {
+                            Text("Cancel", fontSize = 16.sp)
+                        }
+                        
+                        Button(
+                            onClick = {
+                                if (isValid) {
+                                    onSaveApiKey()
+                                    isEditing = false
+                                    focusManager.clearFocus()
+                                }
+                            },
+                            enabled = isValid,
+                            modifier = Modifier.weight(1f).height(40.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
+                        ) {
+                            Text("Save", fontSize = 16.sp)
+                        }
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                        .border(
+                            width = 0.8.dp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.VpnKey, 
+                        null, 
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (geminiApiKey.isBlank()) "Using Default Key" 
+                                  else geminiApiKey.take(4) + "••••••••" + geminiApiKey.takeLast(4),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (geminiApiKey.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    
+                    Button(
+                        onClick = { isEditing = true },
+                        modifier = Modifier.height(32.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp)
+                    ) {
+                        val isNew = geminiApiKey.isBlank()
+                        Icon(
+                            imageVector = if (isNew) Icons.Default.Add else Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isNew) "Add Key" else "Edit",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
         }
-
+        
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(20.dp))
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.AutoAwesome, 
+                    null, 
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Why use a personal key?",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             Text(
-                "Why use a personal key?",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                "Personal keys guarantee 100% uptime for Audix's intelligent genre detection, as the built-in app key shares usage limits across all users. Using your own key also enables faster processing and complete privacy for your listening habits.",
+                "Personal keys guarantee 100% uptime for Audix's intelligent genre detection as usage limits are not shared. Using your own key also enables faster processing and complete privacy.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 18.sp
