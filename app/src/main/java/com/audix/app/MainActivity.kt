@@ -1389,15 +1389,15 @@ fun AboutSettingsPage() {
                 title = "Privacy Policy",
                 icon = Icons.Outlined.Lock,
                 onClick = { 
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/AtharvaP-251/Audix-Lab/blob/main/PRIVACY_POLICY.md"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://atharvap-251.github.io/Audix-Lab/#privacy"))
                     context.startActivity(intent)
                 }
             )
             AboutLinkRow(
-                title = "GitHub Repository",
-                icon = Icons.Outlined.Code,
+                title = "Documentation",
+                icon = Icons.Outlined.Description,
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/AtharvaP-251/Audix-Lab"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://atharvap-251.github.io/Audix-Lab/"))
                     context.startActivity(intent)
                 }
             )
