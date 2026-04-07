@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audix | Intelligent Audio Engine for Android</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Professional documentation for Audix, the AI-powered audio enhancement engine for Android. Featuring AutoEQ, Spatial Audio, and Hybrid Intelligence.">
+    <meta name="keywords"
+        content="Android Audio Engine, AI Equalizer, Spatial Audio, Jetpack Compose, Gemini AI, Audio Effects">
+    <meta property="og:title" content="Audix Documentation | Intelligent Audio Engine">
+    <meta property="og:description" content="Elevate your sound with Audix's AI-powered real-time audio enhancement.">
+    <meta property="og:type" content="website">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo" id="header-logo">
+                <svg class="logo-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                    <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"></path>
+                    <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                </svg>
+                <span class="logo-text">Audix</span>
+            </div>
+            <div class="search-container">
+                <input type="text" id="doc-search" placeholder="Search documentation... (Press '/' to focus)"
+                    autocomplete="off">
+            </div>
+            <div class="header-links">
+                <a href="https://github.com/AtharvaP-251/Audix-Lab" class="github-link" target="_blank"
+                    aria-label="View on GitHub">
+                    <svg height="30" viewBox="0 0 16 16" width="30">
+                        <path fill="currentColor"
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+                        </path>
+                    </svg>
+                </a>
+            </div>
+            <button class="mobile-menu-toggle" id="mobile-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar sidebar-left" id="sidebar-left">
+            <div class="sidebar-content">
+                <ul class="nav-list">
+                    <li class="nav-item active"><a href="#introduction"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg> Introduction</a></li>
+
+                    <li class="nav-group-title">First Steps</li>
+                    <li class="nav-item"><a href="#getting-started"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                            </svg> Getting Started</a></li>
+                    <li class="nav-item"><a href="#supported-players"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M9 18V5l12-2v13"></path>
+                                <circle cx="6" cy="18" r="3"></circle>
+                                <circle cx="18" cy="16" r="3"></circle>
+                            </svg> Supported Players</a></li>
+
+                    <li class="nav-group-title">Engine Features</li>
+                    <li class="nav-item"><a href="#autoeq"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg> AutoEQ Engine</a></li>
+                    <li class="nav-item"><a href="#spatial-audio"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                <polyline points="2 17 12 22 22 17"></polyline>
+                                <polyline points="2 12 12 17 22 12"></polyline>
+                            </svg> Spatial Audio</a></li>
+                    <li class="nav-item"><a href="#custom-tuning"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <line x1="4" y1="21" x2="4" y2="14"></line>
+                                <line x1="4" y1="10" x2="4" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12" y2="3"></line>
+                                <line x1="20" y1="21" x2="20" y2="16"></line>
+                                <line x1="20" y1="12" x2="20" y2="3"></line>
+                                <line x1="2" y1="14" x2="6" y2="14"></line>
+                                <line x1="10" y1="8" x2="14" y2="8"></line>
+                                <line x1="18" y1="16" x2="22" y2="16"></line>
+                            </svg> Custom Tuning</a></li>
+
+                    <li class="nav-group-title">Technical Design</li>
+                    <li class="nav-item"><a href="#architecture"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg> System Architecture</a></li>
+                    <li class="nav-item"><a href="#dsp-pipeline"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                            </svg> DSP Pipeline</a></li>
+                    <li class="nav-item"><a href="#ai-intelligence"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path
+                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                                </path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg> AI Intelligence</a></li>
+
+                    <li class="nav-group-title">Resources</li>
+                    <li class="nav-item"><a href="#troubleshooting"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg> Troubleshooting</a></li>
+                    <li class="nav-item"><a href="#privacy"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg> Privacy & Security</a></li>
+                    <li class="nav-item"><a href="#contributing"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg> Contributing</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <section id="introduction">
+                <h1>Audix <span class="anchor-link">#</span></h1>
+                <p class="lead">The intelligent, high-fidelity audio engine for Android. Powered by AI, tuned for
+                    perfection.</p>
+
+                <div class="feature-card">
+                    <p>Audix is a premium audio enhancement suite that automatically adapts your device's sound
+                        signature based on real-time genre analysis. It bridges the gap between professional-grade audio
+                        processing and seamless, zero-config user experience.</p>
+                </div>
+
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <span class="label">Interface</span>
+                        <span class="value">Jetpack Compose</span>
+                    </div>
+                    <div class="tech-item">
+                        <span class="label">Intelligence</span>
+                        <span class="value">Gemini 2.5 Flash Lite</span>
+                    </div>
+                    <div class="tech-item">
+                        <span class="label">Engine</span>
+                        <span class="value">Android SDK 34+</span>
+                    </div>
+                    <div class="tech-item">
+                        <span class="label">Priority</span>
+                        <span class="value">Low-Latency DSP</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="getting-started">
+                <h2>Getting Started <span class="anchor-link">#</span></h2>
+                <p>Audix is designed to be invisible. Once set up, it lives in the background, enhancing every note you
+                    play.</p>
+
+                <div class="info-box note">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <div>
+                        <strong>Installation</strong>: Audix requires Notification Access to track media metadata and
+                        Battery Optimization Exemption to prevent service termination during long listening sessions.
+                    </div>
+                </div>
+
+                <ol>
+                    <li><strong>Grant Permissions</strong>: Enable Notification Listener and Background Activity in the
+                        welcome screen.</li>
+                    <li><strong>Sync Engine</strong>: Audix will automatically attach to Session 0 (Global) to capture
+                        all system audio.</li>
+                    <li><strong>Listen</strong>: Simply play music from any supported app; the AI will take over within
+                        milliseconds.</li>
+                </ol>
+            </section>
+
+            <section id="supported-players">
+                <h2>Supported Players <span class="anchor-link">#</span></h2>
+                <p>Audix uses advanced IPC (Inter-Process Communication) to extract metadata from the following players:
+                </p>
+
+                <div class="config-list">
+                    <div class="config-item">
+                        <span class="app-name">Spotify</span>
+                        <span class="status-badge supported">Native Support</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="app-name">YouTube Music</span>
+                        <span class="status-badge supported">Native Support</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="autoeq">
+                <h2>AutoEQ Engine <span class="anchor-link">#</span></h2>
+                <p>The AutoEQ engine is the core differentiator of Audix. It moves beyond static presets into adaptive,
+                    context-aware sonic profiles.</p>
+
+                <div class="feature-card">
+                    <h3>Adaptive Gain Compensation</h3>
+                    <p>Standard Android EQs often reduce overall volume to prevent clipping. Audix implements a +3.0dB
+                        pre-gain offset with soft-limiting to maintain high loudness while applying rich curves.</p>
+                </div>
+
+                <div class="info-box tip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    <div>
+                        <strong>Smart Fade</strong>: When genres transition (e.g., from Jazz to Metal), Audix smoothly
+                        interpolates EQ bands over 500ms to avoid abrupt sonic shifts.
+                    </div>
+                </div>
+            </section>
+
+            <section id="spatial-audio">
+                <h2>Spatial Audio <span class="anchor-link">#</span></h2>
+                <p>Audix's spatial engine uses a 4-layer psychoacoustic approach to create a 3D soundstage from a
+                    standard stereo source.</p>
+
+                <ul>
+                    <li><strong>Layer A: Pinna Notch</strong>: Simulates the frequency response of the human ear to
+                        improve 3D positioning.</li>
+                    <li><strong>Layer B: Stereo Widening</strong>: Expands the virtual field beyond the physical driver
+                        constraints.</li>
+                    <li><strong>Layer C: Environmental Depth</strong>: Adds sophisticated reverb models (Room, Concert
+                        Hall, Stadium).</li>
+                    <li><strong>Layer D: Bass-Aware Dynamics</strong>: Preserves low-end clarity even at high
+                        virtualization levels.</li>
+                </ul>
+
+                <div class="info-box warning">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                        </path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <div>
+                        <strong>Headphones Required</strong>: Spatial algorithms are phase-sensitive and require
+                        headphones to work effectively. Audix auto-disables this feature on internal speakers.
+                    </div>
+                </div>
+            </section>
+
+            <section id="custom-tuning">
+                <h2>Custom Tuning <span class="anchor-link">#</span></h2>
+                <p>For purists, Audix offers high-precision manual controls that override the AI engine for the ultimate
+                    personalized signature.</p>
+
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <span class="label">Bass</span>
+                        <span class="value">Low-Shelf ≤ 250Hz</span>
+                    </div>
+                    <div class="tech-item">
+                        <span class="label">Vocals</span>
+                        <span class="value">Bell 800 - 3kHz</span>
+                    </div>
+                    <div class="tech-item">
+                        <span class="label">Treble</span>
+                        <span class="value">High-Shelf ≥ 8kHz</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Technical Design Sections -->
+            <hr>
+
+            <section id="architecture">
+                <h2>System Architecture <span class="anchor-link">#</span></h2>
+                <p>Audix is built on a modern, decoupled architecture designed for high availability and low latency.
+                </p>
+
+                <div class="feature-card">
+                    <h3>The Layered Approach</h3>
+                    <ul>
+                        <li><strong>Orchestrator</strong>: <code>AudioEngineServiceLocal</code> handles the foreground
+                            lifecycle and global audio session binding.</li>
+                        <li><strong>Observer</strong>: <code>SongDetectionService</code> utilizes Android's
+                            <code>NotificationListenerService</code> to track and react to media changes across the
+                            system.
+                        </li>
+                        <li><strong>Engine</strong>: A high-performance wrapper around the <code>AudioEffect</code> API,
+                            managing <code>Equalizer</code> and <code>Virtualizer</code> instances with priority 1000.
+                        </li>
+                        <li><strong>Data Layer</strong>: Room-backed persistence for genre caching, ensuring millisecond
+                            response times even when offline.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="dsp-pipeline">
+                <h2>DSP Pipeline <span class="anchor-link">#</span></h2>
+                <p>Audix applies a rigorous processing chain to every audio buffer passing through the system.</p>
+
+                <div class="feature-card">
+                    <ol>
+                        <li><strong>Pre-Analysis</strong>: Genre is identified via AI or Local Cache.</li>
+                        <li><strong>Gain Preparation</strong>: Signal is padded by 3dB to provide headroom for EQ
+                            boosting.</li>
+                        <li><strong>Psychoacoustic Profiling</strong>: Pinna notch filters are applied if Spatial Audio
+                            is active.</li>
+                        <li><strong>Curve Application</strong>: 10-band hardware EQ is programmed with the target
+                            signature.</li>
+                        <li><strong>Environment Sim</strong>: Stereo widening and environmental reverb are applied at
+                            the tail.</li>
+                        <li><strong>Limiting</strong>: Soft-clipper ensures no digital distortion occurs at peak
+                            amplitude.</li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="ai-intelligence">
+                <h2>AI Intelligence <span class="anchor-link">#</span></h2>
+                <p>Audix leverages a hybrid intelligence model to balance speed and accuracy, primarily powered by the
+                    next-generation Gemini 2.5 Flash Lite model.</p>
+
+                <div class="feature-card">
+                    <h3>Gemini 2.5 Flash Lite Integration</h3>
+                    <p>When a new song is detected, Audix sends an encrypted metadata packet to our classification
+                        model. Using Gemini 2.5 Flash Lite's industry-leading latency and massive context window, the
+                        model identifies
+                        not just the genre, but the "vibe" and "sonic density" to pick the perfect EQ profile in under
+                        200ms.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>API Key Management</h3>
+                    <p>Audix provides a seamless experience regarding AI connectivity. You can choose between the
+                        built-in engine or your own dedicated pipeline.</p>
+                    <ul>
+                        <li><strong>Built-in Engine (Default)</strong>: Audix comes with a shared developer key. It's
+                            zero-config but may be subject to global rate limits during peak usage.</li>
+                        <li><strong>Dedicated Key (Recommended)</strong>: By providing your own Google AI Studio API
+                            key, you unlock private quotas, higher rate limits, and zero latency overhead from shared
+                            queues.</li>
+                    </ul>
+                    <div class="info-box tip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                        </svg>
+                        <div>
+                            <strong>How to configure</strong>: Navigate to <strong>Settings > Advanced > API
+                                Key</strong> in the app to paste your own Gemini key.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>The Local Fallback</h3>
+                    <p>Metadata for over 50,000 common tracks is stored in an optimized local Room database. If
+                        classification fails, connectivity is lost, or the built-in key hits a rate limit, Audix falls
+                        back to local knowledge in &lt; 5ms.</p>
+                </div>
+            </section>
+
+            <hr>
+
+            <section id="troubleshooting">
+                <h2>Troubleshooting <span class="anchor-link">#</span></h2>
+                <p>Technical solutions for common edge cases.</p>
+
+                <div class="feature-card">
+                    <h4>No effect in specific apps (e.g., Poweramp)</h4>
+                    <p>Some premium players use their own audio engine and bypass the system effect chain. Ensure
+                        "MusicFX" or "System Audio Effects" is enabled in your player's settings.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h4>OEM Conflicts (Xiaomi Sound, Oreality audio, Dolby Atmos etc.)</h4>
+                    <p>Audix uses Priority 1000 to override system effects. If you bear distortion, try disabling the
+                        OEM audio suite (Xiaomi Sound, Oreality audio, Dolby Atmos etc.) to prevent filter stacking.</p>
+                </div>
+            </section>
+
+            <section id="privacy">
+                <h2>Privacy & Security <span class="anchor-link">#</span></h2>
+                <p>Audix is designed with <strong>Privacy-by-Default</strong>. We don't want your data; we only want to
+                    improve your sound.</p>
+
+                <div class="feature-card">
+                    <ul>
+                        <li><strong>Metadata Only</strong>: We only process Track Title and Artist. No private
+                            notifications are ever read.</li>
+                        <li><strong>No Accounts</strong>: Audix works 100% anonymously. No email or login required.</li>
+                        <li><strong>Local Logic</strong>: All DSP processing happens locally on your device's audio
+                            hardware.</li>
+                        <li><strong>Open Source</strong>: Our code is AGPL-3.0 licensed, allowing full community
+                            auditing.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="contributing">
+                <h2>Contributing <span class="anchor-link">#</span></h2>
+                <p>Help us make world-class audio accessible to everyone. We welcome contributions to the Android app,
+                    the AI modeling, and our documentation.</p>
+                <p>Visit our <a href="https://github.com/AtharvaP-251/Audix-Lab">GitHub Repository</a> to get started.
+                </p>
+            </section>
+
+            <footer class="footer">
+                <div class="footer-social">
+                    <a href="https://github.com/AtharvaP-251/Audix-Lab" aria-label="GitHub">GitHub</a>
+                    <a href="#privacy">Privacy</a>
+                    <a href="#contributing">Contribute</a>
+                </div>
+                <div>&copy; 2026 Audix Engine • AGPL-3.0 Licensed</div>
+                <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 8px;">Elevating your sound, intelligently.
+                </div>
+            </footer>
+        </main>
+
+        <!-- Right Side TOC -->
+        <aside class="sidebar sidebar-right" id="sidebar-right">
+            <div class="sidebar-content">
+                <span class="toc-title">On this page</span>
+                <ul class="toc-list" id="toc-list">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Main JavaScript -->
+    <script src="main.js"></script>
+</body>
+
+</html>

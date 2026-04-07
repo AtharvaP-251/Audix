@@ -56,11 +56,12 @@ For those who want total control.
 
 ## 🤖 Custom AI Engine (Advanced)
 
-### Gemini API Integration ⚡
+### Gemini 2.5 Flash Lite Integration ⚡
 To get the most out of Audix, you can use your own Google Gemini API key.
-- **Benefits**: Faster detection, no shared limits, and enhanced privacy.
-- **How to Setup**: Go to **Settings > Gemini API Key** and paste your key.
-- **Privacy**: Your key is stored locally on your device and never shared.
+- **Built-in Key**: By default, Audix uses a shared developer key. While this is zero-config, it may reach global rate limits during peak hours.
+- **Private Key Benefits**: Using your own key provides faster detection, dedicated usage limits, and absolute privacy.
+- **How to Setup**: Go to **Settings > Advanced > Gemini API Key** and paste your key from Google AI Studio. 
+- **Privacy**: Your key is stored locally on your device and never shared with our servers.
 
 ---
 
