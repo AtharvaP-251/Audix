@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.audix.app"
+    namespace = "com.audixlab.audix"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.audix.app"
+        applicationId = "com.audixlab.audix"
         minSdk = 29
         targetSdk = 36
         versionCode = 1
