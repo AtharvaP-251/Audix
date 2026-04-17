@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Audix - Intelligent Audio Engine for Android
  * Copyright (C) 2026 Audix
  *
@@ -1389,7 +1389,7 @@ fun AboutSettingsPage() {
                 title = "Privacy Policy",
                 icon = Icons.Outlined.Lock,
                 onClick = { 
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://atharvap-251.github.io/Audix-Lab/#privacy"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://atharvap-251.github.io/Audix/#privacy"))
                     context.startActivity(intent)
                 }
             )
@@ -1397,7 +1397,7 @@ fun AboutSettingsPage() {
                 title = "Documentation",
                 icon = Icons.Outlined.Description,
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://atharvap-251.github.io/Audix-Lab/"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://atharvap-251.github.io/Audix/"))
                     context.startActivity(intent)
                 }
             )

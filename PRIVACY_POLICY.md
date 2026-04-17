@@ -54,4 +54,4 @@ If you have any questions about this Privacy Policy, please contact us through o
 
 ---
 
-*Audix Labs — Private, intelligent sound.*
+*Audix Lab — Private, intelligent sound.*
