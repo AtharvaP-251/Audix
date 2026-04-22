@@ -1,4 +1,4 @@
-﻿package com.audixlab.audix.data
+package com.audixlab.audix.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -26,6 +26,9 @@ class UserPreferencesRepository(private val context: Context) {
         val SPATIAL_LEVEL   = intPreferencesKey("spatial_level")   // 0–5
         val GEMINI_API_KEY  = androidx.datastore.preferences.core.stringPreferencesKey("gemini_api_key")
         val MASTER_ENABLED  = booleanPreferencesKey("master_enabled")
+        val EQ_CARD_EXPANDED = booleanPreferencesKey("eq_card_expanded")
+        val CUSTOM_CARD_EXPANDED = booleanPreferencesKey("custom_card_expanded")
+        val SPATIAL_CARD_EXPANDED = booleanPreferencesKey("spatial_card_expanded")
     }
 
     val eqIntensityFlow: Flow<Float> = context.dataStore.data
@@ -61,6 +64,15 @@ class UserPreferencesRepository(private val context: Context) {
 
     val masterEnabledFlow: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[MASTER_ENABLED] ?: true }
+
+    val eqCardExpandedFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[EQ_CARD_EXPANDED] ?: false }
+
+    val customCardExpandedFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[CUSTOM_CARD_EXPANDED] ?: false }
+
+    val spatialCardExpandedFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[SPATIAL_CARD_EXPANDED] ?: false }
 
     suspend fun saveEqIntensity(intensity: Float) {
         context.dataStore.edit { preferences -> preferences[EQ_INTENSITY] = intensity }
@@ -110,5 +122,17 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun saveMasterEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences -> preferences[MASTER_ENABLED] = enabled }
+    }
+
+    suspend fun saveEqCardExpanded(expanded: Boolean) {
+        context.dataStore.edit { preferences -> preferences[EQ_CARD_EXPANDED] = expanded }
+    }
+
+    suspend fun saveCustomCardExpanded(expanded: Boolean) {
+        context.dataStore.edit { preferences -> preferences[CUSTOM_CARD_EXPANDED] = expanded }
+    }
+
+    suspend fun saveSpatialCardExpanded(expanded: Boolean) {
+        context.dataStore.edit { preferences -> preferences[SPATIAL_CARD_EXPANDED] = expanded }
     }
 }

@@ -1,0 +1,233 @@
+# Audix DSP Engine — Flagship-Level Overhaul
+
+Full analysis and upgrade of the Audix audio processing chain, bug fixes, genre expansion, and zero-centered EQ curves.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **DSP Chain Redesign**: The current EQ pipeline has several gain-stacking issues (`+3dB` hardcoded offset + `2x` exaggeration multiplier) that cause muddiness and potential clipping. This plan removes them and replaces with a clean, zero-centered approach.
+
+> [!WARNING]
+> **Motorola/Dolby Atmos Bug**: The spatial audio conflict on Moto devices when Dolby Atmos is on requires disabling our Virtualizer/Reverb/LoudnessEnhancer when they fail to initialize on that specific session. This is a graceful degradation — we cannot override Dolby's exclusive audio session lock.
+
+> [!IMPORTANT]
+> **Card State Persistence**: Currently, card expand/collapse state is derived from feature toggles (`isAutoEqEnabled`, etc.), causing cards to open by default and play closing animations on app launch. Fix: persist expand state in DataStore.
+
+---
+
+## Critical DSP Issues Found
+
+### 1. Gain Stacking / Muddiness (EqEngine.kt:181)
+```kotlin
+// CURRENT — problematic
+var targetLevel = ((gainDb * currentIntensity * 2.0f + 3.0f) * 100).toInt()
+```
+- **`* 2.0f`** — Doubles the EQ curve arbitrarily. A 3dB preset boost becomes 6dB, far exceeding intended coloring.
+- **`+ 3.0f`** — Hardcoded +3dB offset to "combat volume reduction" is a blunt instrument. It shifts the entire curve up, creating muddiness and headroom issues.
+- **`* 100`** — millibels conversion is correct, but applied after the stacking.
+
+**Fix**: Remove the `2x` multiplier and `+3dB` offset. Instead, use **zero-centered presets** (net gain ≈ 0dB) that sculpt the tone without adding energy. Use a separate, controlled `LoudnessEnhancer` for perceived volume compensation.
+
+### 2. EQ Presets Are NOT Zero-Centered
+Every current preset has all-positive values (e.g., Rock: `3.5, 2.5, -2.5, ..., 3.0`). The average gain across bands is **+1.1 to +2.8 dB** — all positive DC offset. This makes every genre sound "boosted" and wastes headroom.
+
+**Fix**: Shift each preset so the mean across all 10 bands ≈ 0. This preserves the *shape* of the curve while eliminating DC bias.
+
+### 3. Spatial Audio on Motorola + Dolby Atmos
+When Dolby Atmos is active, it holds an exclusive lock on the audio session. Our `Virtualizer`, `EnvironmentalReverb`, and `LoudnessEnhancer` all fail silently, but the EQ psychoacoustic layer (pinna notch coloring) still fires, creating audible notch artifacts without the compensating widening/reverb.
+
+**Fix**: Track which spatial sub-effects actually initialized. If Virtualizer + Reverb both fail, disable the psychoacoustic EQ layer too (graceful degradation).
+
+### 4. Card State Bug
+```kotlin
+// CURRENT — derived from toggle state, replays closing animation on every launch
+var isEqExpanded by remember { mutableStateOf(isAutoEqEnabled) }
+var isSpatialExpanded by remember { mutableStateOf(isSpatialEnabled) }
+var isCustomExpanded by remember { mutableStateOf(isCustomTuningEnabled) }
+```
+Cards initialize as expanded/collapsed based on whether the feature is *enabled*. On cold launch with a feature off, the card starts "expanded" for one frame then collapses — visible closing animation.
+
+**Fix**: Persist expand/collapse state in DataStore. Initialize from persisted value. Never derive from toggle state.
+
+---
+
+## Proposed Changes
+
+### DSP Core — EQ Processing
+
+---
+
+#### [MODIFY] [EqEngine.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/audio/EqEngine.kt)
+
+**Remove gain stacking, implement clean zero-centered processing:**
+
+```diff
+// Line 181 — Replace gain calculation
+- var targetLevel = ((gainDb * currentIntensity * 2.0f + 3.0f) * 100).toInt()
++ // Zero-centered: preset bands are already DC-balanced around 0 dB.
++ // Intensity scales the curve's *shape* without adding DC offset.
++ var targetLevel = (gainDb * currentIntensity * 100).toInt()
+```
+
+**Add graceful spatial degradation for Dolby conflict:**
+
+- Check `spatialEngine.virtualizerSupported && spatialEngine.reverbSupported` before applying psychoacoustic EQ layer (line 235-240).
+- If either is false, skip the pinna notch / torso warmth deltas — they are only meaningful in conjunction with the widening and reverb layers.
+
+---
+
+#### [MODIFY] [EQPreset.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/audio/EQPreset.kt)
+
+**Complete preset rewrite — 18 genres, all zero-centered:**
+
+The principle: compute the mean of all 10 band values, subtract it from every band. This shifts the curve to sit at 0dB center while preserving shape. Negative values cut, positive values boost — clean subtractive+additive EQ.
+
+New genre list (18 presets):
+| Genre | Character | Key Shaping |
+|---|---|---|
+| Bollywood | Warm bass, vocal presence, bright top | +sub, +1-3kHz, +12kHz air |
+| Phonk | Heavy sub-bass, lo-fi mid scoop | +sub, -mids, +presence |
+| Folk | Natural, warm midrange | +200Hz warmth, slight air |
+| Retro 90s | V-curve with mid warmth | +bass, -low-mid, +treble |
+| Jazz | Warm, airy, intimate | +bass warmth, +air, -harsh mids |
+| Blues | Warm, gritty, vocal-forward | +low-mids, +2-4kHz |
+| Rock | Punchy, aggressive, bright | +kick, +snare crack, +presence |
+| Soul | Warm, rich, smooth | +bass, +vocal, -sibilance |
+| R&B | Deep bass, smooth vocals | +sub, +1-2kHz warmth |
+| Acoustic | Transparent, body, shimmer | +body, +string shimmer |
+| Modern Classical | Natural dynamics, spacious | Minimal coloring, air boost |
+| Classical | Reference-grade, transparent | Almost flat, subtle air |
+| Instrumental | Balanced, wide, detailed | Neutral with slight width |
+| Pop | Bright, upfront, fun | +bass, +presence, +sparkle |
+| Hip-Hop | Sub-heavy, vocal cut-through | +sub, +presence |
+| EDM | Sub-bass punch, crisp highs | +sub, -mud, +top |
+| Metal | Aggressive, tight, cutting | +bass attack, +upper mids |
+| Lo-fi | Rolled-off top, warm, vintage | +low, -highs, warm mids |
+
+---
+
+#### [MODIFY] [SpatialEngine.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/audio/SpatialEngine.kt)
+
+- Expose `effectsOperational` flag: `true` only when Virtualizer AND Reverb both initialized successfully.
+- This flag is read by `EqEngine` to gate psychoacoustic EQ coloring.
+
+---
+
+#### [MODIFY] [SpatialProfile.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/audio/SpatialProfile.kt)
+
+- Reduce aggressive-level loudness compensation from 700mB to 500mB (reduces distortion at level 5).
+- Reduce maximum reverb RT60 from 900ms to 650ms (less "washy", more controlled depth).
+
+---
+
+### Genre Detection
+
+---
+
+#### [MODIFY] [GenreDetector.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/domain/GenreDetector.kt)
+
+Update the Gemini prompt to include all 18 genres:
+```
+Classify the song into ONE genre from:
+Bollywood, Phonk, Folk, Retro 90s, Jazz, Blues, Rock, Soul, R&B, Acoustic,
+Modern Classical, Classical, Instrumental, Pop, Hip-Hop, EDM, Metal, Lo-fi.
+```
+
+---
+
+### Bug Fixes — UI State Persistence
+
+---
+
+#### [MODIFY] [UserPreferencesRepository.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/data/UserPreferencesRepository.kt)
+
+Add three new DataStore keys for card expand state:
+```kotlin
+val EQ_CARD_EXPANDED = booleanPreferencesKey("eq_card_expanded")
+val CUSTOM_CARD_EXPANDED = booleanPreferencesKey("custom_card_expanded")
+val SPATIAL_CARD_EXPANDED = booleanPreferencesKey("spatial_card_expanded")
+```
+
+With flows and save methods, defaulting to `false` (collapsed on fresh install).
+
+---
+
+#### [MODIFY] [MainActivity.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/MainActivity.kt)
+
+Replace:
+```kotlin
+var isEqExpanded by remember { mutableStateOf(isAutoEqEnabled) }
+var isSpatialExpanded by remember { mutableStateOf(isSpatialEnabled) }
+var isCustomExpanded by remember { mutableStateOf(isCustomTuningEnabled) }
+```
+
+With DataStore-backed state:
+```kotlin
+val eqExpandedPref by userPreferencesRepository.eqCardExpandedFlow.collectAsState(initial = false)
+var isEqExpanded by remember { mutableStateOf(false) }
+LaunchedEffect(eqExpandedPref) { isEqExpanded = eqExpandedPref }
+// ... same pattern for custom and spatial
+```
+
+And persist on change:
+```kotlin
+onExpandedChange = { expanded ->
+    isEqExpanded = expanded
+    coroutineScope.launch { userPreferencesRepository.saveEqCardExpanded(expanded) }
+}
+```
+
+---
+
+## Zero-Centered EQ Preset Values (Final)
+
+Each preset is scientifically tuned with a net DC offset ≈ 0 dB across all 10 bands. Bands: 31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 Hz.
+
+| Genre | 31 | 62 | 125 | 250 | 500 | 1k | 2k | 4k | 8k | 16k | Mean |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Bollywood | 3.0 | 2.0 | -1.0 | -0.5 | 0.5 | 1.5 | 2.0 | -1.0 | -3.0 | -1.5 | 0.2 |
+| Phonk | 5.0 | 3.5 | 1.0 | -2.0 | -3.0 | -2.5 | -1.0 | 1.0 | -0.5 | -1.5 | 0.0 |
+| Folk | -1.0 | 0.5 | 1.5 | 2.0 | 1.0 | 0.5 | -0.5 | -1.0 | -1.5 | -0.5 | 0.1 |
+| Retro 90s | 3.0 | 2.0 | 0.5 | -1.5 | -2.5 | -1.0 | 0.5 | 1.0 | -0.5 | -1.5 | 0.0 |
+| Jazz | 0.5 | 1.5 | 1.0 | 0.5 | -0.5 | -1.0 | -0.5 | 0.5 | -1.0 | -1.0 | 0.0 |
+| Blues | -0.5 | 1.0 | 1.5 | 1.5 | 0.5 | 0.0 | -0.5 | -1.0 | -1.5 | -1.0 | 0.0 |
+| Rock | 2.5 | 1.5 | -1.0 | -1.5 | -0.5 | 0.0 | 1.0 | 1.5 | -1.5 | -2.0 | 0.0 |
+| Soul | 2.0 | 1.5 | 0.5 | 0.5 | -0.5 | -1.0 | 0.5 | -0.5 | -1.5 | -1.5 | 0.0 |
+| R&B | 3.0 | 2.0 | 0.5 | -0.5 | -1.0 | 0.0 | 0.5 | -1.0 | -1.5 | -2.0 | 0.0 |
+| Acoustic | -1.0 | 0.5 | 1.5 | 1.5 | 0.5 | 0.0 | -0.5 | -0.5 | -1.0 | -1.0 | 0.0 |
+| Mod. Classical | -0.5 | 0.0 | 0.5 | 0.5 | 0.0 | 0.0 | -0.5 | 0.0 | 0.5 | -0.5 | 0.0 |
+| Classical | 0.0 | 0.5 | 0.0 | 0.0 | -0.5 | 0.0 | 0.0 | 0.5 | -0.5 | 0.0 | 0.0 |
+| Instrumental | 0.0 | 0.5 | 0.5 | 0.0 | -0.5 | 0.0 | 0.0 | 0.5 | -0.5 | -0.5 | 0.0 |
+| Pop | 2.5 | 1.5 | -1.0 | -1.5 | 0.0 | 0.5 | 1.5 | 0.5 | -2.0 | -2.0 | 0.0 |
+| Hip-Hop | 4.0 | 3.0 | 0.5 | -1.5 | -2.0 | -1.0 | 0.5 | 0.5 | -2.0 | -2.0 | 0.0 |
+| EDM | 4.0 | 2.5 | -0.5 | -2.0 | -1.5 | 0.0 | 1.0 | 1.5 | -2.5 | -2.5 | 0.0 |
+| Metal | 3.0 | 2.0 | -1.0 | -2.0 | -0.5 | 1.0 | 2.0 | 0.5 | -2.5 | -2.5 | 0.0 |
+| Lo-fi | 1.0 | 2.0 | 1.5 | 0.5 | 0.0 | -0.5 | -1.5 | -1.0 | -1.0 | -1.0 | 0.0 |
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Volume Compensation Strategy**: With the +3dB offset removed, users may perceive a volume drop when EQ activates. Should we use `LoudnessEnhancer` at a fixed ~150mB (+1.5dB) when EQ is active to compensate? Or trust the cleaner signal? Current recommendation: no boost — zero-centered curves should be perceptually neutral.
+
+> [!NOTE]
+> **Existing Song Cache**: Users with cached genre results will have old genre classifications (e.g., "Electronic" instead of "EDM"). These will still map correctly via `getPresetForGenre()` partial matching. New detections will use the expanded genre list.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+
+- **Build Verification**: `gradlew assembleDebug` — confirm compilation.
+- **EQ Math Verification**: For each preset, verify the mean of all 10 bands is within ±0.3 dB of 0.
+- **Preset Lookup**: Verify all 18 genre names resolve via `getPresetForGenre()`.
+- **State Persistence**: Verify DataStore keys round-trip for card expand states.
+
+### Manual Verification
+
+- Build and test on device with Dolby Atmos enabled — verify spatial audio gracefully degrades (EQ-only, no artifacts).
+- Cold launch app — verify no card closing animation on startup.
+- Toggle cards open/close, kill app, relaunch — verify state persists.
+- Play music across genres — verify zero-centered EQ sounds clean with no muddiness.

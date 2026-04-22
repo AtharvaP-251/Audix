@@ -1,8 +1,8 @@
-﻿package com.audixlab.audix.audio
+package com.audixlab.audix.audio
 
 import android.media.audiofx.EnvironmentalReverb
 import android.media.audiofx.Virtualizer
-import android.media.audiofx.LoudnessEnhancer
+import android.media.audiofx.DynamicsProcessing
 import android.os.Build
 import android.util.Log
 
@@ -20,8 +20,8 @@ import android.util.Log
  *  Layer C — Environmental Depth (Reverb)
  *      Uses [EnvironmentalReverb] for granular control over decay and reflections.
  *
- *  Layer D — Volume Compensation (LoudnessEnhancer)
- *      Counteracts perceived volume drop when spatial processing is active.
+ *  Layer D — Dynamics Control (DynamicsProcessing)
+ *      Prevents clipping and ensures density via proper limiter compression.
  */
 class SpatialEngine {
 
@@ -29,21 +29,30 @@ class SpatialEngine {
 
     private var reverb: EnvironmentalReverb? = null
     private var virtualizer: Virtualizer? = null
-    private var enhancer: LoudnessEnhancer? = null
+    private var dynamics: DynamicsProcessing? = null
 
     var reverbSupported: Boolean = false
         private set
     var virtualizerSupported: Boolean = false
         private set
-    var enhancerSupported: Boolean = false
+    var dynamicsSupported: Boolean = false
         private set
+
+    /**
+     * Returns `true` when core spatial effects (Virtualizer + Reverb) are both available.
+     * If either failed to initialize (e.g., Dolby Atmos holds an exclusive session lock),
+     * the psychoacoustic EQ layer should be skipped entirely — pinna notch coloring
+     * without compensating widening/reverb creates audible artifacts.
+     */
+    val effectsOperational: Boolean
+        get() = virtualizerSupported && reverbSupported
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     fun initialize() {
         tryInitReverb()
         tryInitVirtualizer()
-        tryInitEnhancer()
+        tryInitDynamicsProcessing(0) // Default to global session 0 if not provided
     }
 
     private fun tryInitReverb() {
@@ -74,17 +83,22 @@ class SpatialEngine {
         }
     }
 
-    private fun tryInitEnhancer() {
+    private fun tryInitDynamicsProcessing(audioSessionId: Int) {
         try {
-            val le = LoudnessEnhancer(0)
-            le.enabled = false
-            enhancer = le
-            enhancerSupported = true
-            Log.d(TAG, "LoudnessEnhancer initialised")
+            val builder = DynamicsProcessing.Config.Builder(
+                DynamicsProcessing.VARIANT_FAVOR_FREQUENCY_RESOLUTION,
+                2, false, 0, true, 1, false, 0, true
+            )
+            val config = builder.build()
+            val dp = DynamicsProcessing(0, audioSessionId, config)
+            dp.enabled = false
+            dynamics = dp
+            dynamicsSupported = true
+            Log.d(TAG, "DynamicsProcessing initialised")
         } catch (e: Throwable) {
-            enhancerSupported = false
-            enhancer = null
-            Log.w(TAG, "LoudnessEnhancer not supported: ${e.message}")
+            dynamicsSupported = false
+            dynamics = null
+            Log.w(TAG, "DynamicsProcessing not supported: ${e.message}")
         }
     }
 
@@ -94,17 +108,17 @@ class SpatialEngine {
             reverb?.release()
             virtualizer?.enabled = false
             virtualizer?.release()
-            enhancer?.enabled = false
-            enhancer?.release()
+            dynamics?.enabled = false
+            dynamics?.release()
         } catch (e: Throwable) {
             Log.w(TAG, "Error releasing effects: ${e.message}")
         } finally {
             reverb = null
             virtualizer = null
-            enhancer = null
+            dynamics = null
             reverbSupported = false
             virtualizerSupported = false
-            enhancerSupported = false
+            dynamicsSupported = false
         }
         Log.d(TAG, "SpatialEngine released")
     }
@@ -120,7 +134,7 @@ class SpatialEngine {
     ): Int {
         val deltaDb: Float = when {
             bandFreqHz in 200..300       -> profile.torsoWarmth
-            bandFreqHz in 2000..4500     -> profile.airPresence
+            bandFreqHz in 3000..4500     -> profile.airPresence
             bandFreqHz in 6000..9000     -> profile.primaryPinnaNotch
             bandFreqHz >= 14000          -> profile.secondaryPinnaNotch
             else                         -> return currentLevelMillibels
@@ -162,11 +176,15 @@ class SpatialEngine {
         try {
             if (enabled && profile.reverbRt60Ms > 0) {
                 r.decayTime = profile.reverbRt60Ms
+                r.reflectionsDelay = profile.reverbPreDelayMs
+                r.diffusion = profile.reverbDiffusion
+                
                 val wetLevel = (Math.log10(profile.reverbWetDry.toDouble().coerceIn(0.01, 1.0)) * 2000).toInt()
                 r.reverbLevel = wetLevel.toShort()
                 r.reflectionsLevel = (wetLevel - 500).toShort()
+                
                 r.enabled = true
-                Log.d(TAG, "Reverb ON (decay=${r.decayTime}ms, level=$wetLevel)")
+                Log.d(TAG, "Reverb ON (decay=${r.decayTime}ms, preDelay=${r.reflectionsDelay}ms)")
             } else {
                 r.enabled = false
                 Log.d(TAG, "Reverb OFF")
@@ -176,28 +194,39 @@ class SpatialEngine {
         }
     }
 
-    // ── Layer D — Volume Compensation (Gain) ────────────────────────────────
+    // ── Layer D — Dynamics Control (Compressor + Limiter) ───────────────────
 
-    /**
-     * Controls the loudness compensation gain.
-     * @param enabled Whether to enable boost.
-     * @param gainmB Target gain in millibels.
-     */
-    fun setLoudnessBoost(enabled: Boolean, gainmB: Int) {
-        val le = enhancer ?: return
-        if (!enhancerSupported) return
+    fun setDynamicsProcessing(enabled: Boolean, profile: SpatialProfile?) {
+        val dp = dynamics ?: return
+        if (!dynamicsSupported || profile == null) return
 
         try {
-            if (enabled && gainmB > 0) {
-                le.setTargetGain(gainmB)
-                le.enabled = true
-                Log.d(TAG, "LoudnessEnhancer ON (gain=${gainmB}mB)")
+            if (enabled && profile.level > 0) {
+                // Multi-Band Compressor
+                val mbc = DynamicsProcessing.Mbc(true, true, 1)
+                val mbcBand = DynamicsProcessing.MbcBand(
+                    true, 20000f, profile.compressorAttackMs, profile.compressorReleaseMs,
+                    profile.compressorRatio, profile.compressorThresholdDb,
+                    0f, -90f, 1f, 0f, 0f
+                )
+                mbc.setBand(0, mbcBand)
+                dp.setMbcAllChannelsTo(mbc)
+
+                // Limiter Hard Ceiling
+                val limiter = DynamicsProcessing.Limiter(
+                    true, true, 0, profile.compressorAttackMs, profile.compressorReleaseMs,
+                    profile.compressorRatio, profile.limiterThresholdDb, 0f
+                )
+                dp.setLimiterAllChannelsTo(limiter)
+                
+                dp.enabled = true
+                Log.d(TAG, "DynamicsProcessing ON (Limiter Thr=${profile.limiterThresholdDb}dB)")
             } else {
-                le.enabled = false
-                Log.d(TAG, "LoudnessEnhancer OFF")
+                dp.enabled = false
+                Log.d(TAG, "DynamicsProcessing OFF")
             }
         } catch (e: Throwable) {
-            Log.w(TAG, "LoudnessEnhancer error: ${e.message}")
+            Log.w(TAG, "DynamicsProcessing error: ${e.message}")
         }
     }
 

@@ -1,0 +1,109 @@
+# Audix: Flagship Spatial Audio Overhaul
+
+**Spatial Audio Quality**: The current DSP chain has several issues preventing flagship-level quality:
+- Psychoacoustic EQ values are over-aggressive at higher levels (−8 dB pinna notch at level 5 creates audible coloration)
+- No dynamic range compression — loudness boosting via `LoudnessEnhancer` can clip without headroom protection
+- Reverb parameters lack pre-delay (all reflections start at t=0, destroying localization cues)
+- No soft-knee limiting / lookahead — zero distortion cannot be guaranteed
+- LoudnessEnhancer is a blunt gain tool with no frequency-aware behavior
+
+### DSP Chain Audit
+ 
+Current processing order: `EQ Preset → Custom Tuning → Psychoacoustic Notch → Clamp → Virtualizer → Reverb → LoudnessEnhancer`
+
+**Issues identified:**
+
+| Issue | Severity | Impact |
+|-------|----------|--------|
+| No dynamic compression | Critical | Loudness boost without headroom → clipping/distortion |
+| Pinna notch values too aggressive (−8 dB at L5) | High | Audible tonal coloration, unnatural timbre |
+| No reverb pre-delay | High | Reflections at t=0 smear direct sound → destroys ITD cues |
+| Reverb reflections level computed poorly | Medium | `wetLevel - 500` is arbitrary, not psychoacoustically derived |
+| LoudnessEnhancer is frequency-flat | Medium | Bass gets boosted same as mids → muddiness |
+| Air presence boost too wide (2–4.5 kHz) | Medium | Overlaps vocal presence zone → fatiguing sibilance |
+| No soft limiter / peak protection | Critical | Cannot guarantee zero distortion |
+| Virtualizer strength ramps too fast | Medium | L3=500 to L4=750 is a 50% jump; perceptually jarring |
+
+### Proposed Optimal DSP Chain Order
+
+```
+Input Signal
+  │
+  ├─ Stage 1: Genre EQ (tonal shaping — frequency domain)
+  ├─ Stage 2: Custom Tuning overlay (user preference — frequency domain)
+  ├─ Stage 3: Psychoacoustic HRTF shaping (pinna/torso — frequency domain)
+  │            ↑ All frequency-domain ops grouped to maintain phase coherence
+  ├─ Stage 4: Virtualizer (stereo widening — time/phase domain)
+  ├─ Stage 5: Environmental Reverb with pre-delay (depth — time domain)
+  ├─ Stage 6: Dynamic Range Compression (loudness normalization)
+  ├─ Stage 7: Soft-knee limiter / peak protection (distortion prevention)
+  │
+  Output Signal
+```
+
+> [!IMPORTANT]
+> The current chain applies LoudnessEnhancer as a flat gain boost AFTER reverb, which amplifies reverb tail noise. The new chain replaces it with DynamicsProcessing (Android P+) which acts as a compressor+limiter in a single stage, maintaining loudness while preventing distortion.
+
+### Proposed Changes
+
+#### [MODIFY] [SpatialProfile.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/audio/SpatialProfile.kt)
+
+Re-tune all 6 profiles with scientifically-calibrated values:
+
+| Parameter | Current L3 | New L3 | Rationale |
+|-----------|-----------|--------|-----------|
+| primaryPinnaNotch | −4.5 dB | −3.2 dB | HRTF literature: 3–4 dB notch sufficient for externalization |
+| secondaryPinnaNotch | −2.5 dB | −1.8 dB | Reduced to maintain tonal transparency |
+| torsoWarmth | +1.6 dB | +1.0 dB | ISO 11904-1: 1 dB sufficient for grounding |
+| airPresence | +2.0 dB | +1.2 dB | Narrowed to 3–4 kHz only (avoid vocal sibilance) |
+| reverbRt60Ms | 280 ms | 220 ms | Small room RT60 = 200-300ms; shorter = tighter |
+| reverbWetDry | 0.15 | 0.10 | Lower D/R ratio for transparent depth |
+| virtualizerStrength | 500 | 420 | Smoother gradient: 120→220→420→620→800 |
+| loudnessBoostmB | 400 | 250 | Replaced by compressor; minimal makeup gain |
+
+New fields to add:
+- `reverbPreDelayMs: Int` — Pre-delay before early reflections (10–40ms, models direct-to-reflected gap)
+- `reverbDiffusion: Int` — Controls reflection density (0–1000)
+- `compressorThresholdDb: Float` — Compression onset threshold
+- `compressorRatio: Float` — Compression ratio (2:1 to 4:1)
+- `compressorAttackMs: Float` — Attack time
+- `compressorReleaseMs: Float` — Release time
+- `limiterThresholdDb: Float` — Hard ceiling for zero-distortion guarantee
+
+#### [MODIFY] [SpatialEngine.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/audio/SpatialEngine.kt)
+
+Major upgrades:
+1. **Add DynamicsProcessing** (Android P / API 28+) — replaces LoudnessEnhancer with a proper multi-band compressor + limiter
+2. **Add reverb pre-delay** via `EnvironmentalReverb.reflectionsDelay`
+3. **Add reverb diffusion** via `EnvironmentalReverb.diffusion`
+4. **Add soft-knee limiter** as final stage (via DynamicsProcessing limiter band)
+5. **Psychoacoustic EQ delta narrowing** — Air presence band tightened from 2000–4500 Hz to 3000–4500 Hz
+6. **Graceful fallback** for pre-API 28 devices: keep LoudnessEnhancer as fallback when DynamicsProcessing unavailable
+
+#### [MODIFY] [EqEngine.kt](file:///c:/Users/athar/Desktop/Audix/app/src/main/java/com/audixlab/audix/audio/EqEngine.kt)
+
+- Wire new DynamicsProcessing calls from SpatialEngine  
+- Pass new profile parameters (pre-delay, diffusion, compressor settings)
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Minimum API level?** DynamicsProcessing requires Android 9 (API 28). If your min SDK is lower, I'll implement a fallback path that keeps LoudnessEnhancer for older devices while using DynamicsProcessing on API 28+. Please confirm your `minSdkVersion`.
+
+---
+
+## Verification Plan
+
+### Automated / Static Checks
+- Verify the project builds successfully with `./gradlew assembleDebug`
+- Verify no compile errors from new DynamicsProcessing API usage
+- Code review all clamp ranges to ensure no values can exceed hardware limits
+
+### Manual Verification
+- Test genre detection: play 5+ songs → verify genres detected correctly
+- Test after simulated rate limit: verify retry succeeds with backoff
+- Test spatial audio levels 0–5: verify no audible distortion, clipping, or artifacts
+- Test headphone connect/disconnect: verify spatial auto-enables/disables
+- Test on speaker output: verify spatial is correctly bypassed

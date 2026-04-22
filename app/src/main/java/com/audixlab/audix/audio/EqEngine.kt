@@ -1,4 +1,4 @@
-﻿package com.audixlab.audix.audio
+package com.audixlab.audix.audio
 
 import android.content.Context
 import android.content.Intent
@@ -176,9 +176,10 @@ class EqEngine {
 
                 val gainDb = if (closestFreq != null) preset.bands[closestFreq] ?: 0f else 0f
 
-                // Apply intensity scaling, exaggerate curve differences (x2) to be more obvious
-                // We re-add the +3.0dB global offset to combat Android's automatic EQ volume reduction when enabled
-                var targetLevel = ((gainDb * currentIntensity * 2.0f + 3.0f) * 100).toInt()
+                // Apply intensity scaling with a 2x factor to make the effect less subtle.
+                // Zero-centered presets: bands average ≈ 0 dB, so no DC offset is added.
+                // Intensity scales the curve's *shape* without injecting energy.
+                var targetLevel = (gainDb * currentIntensity * 2.0f * 100).toInt()
 
                 // Apply Custom Tuning if enabled
                 if (isCustomTuningEnabled) {
@@ -231,8 +232,11 @@ class EqEngine {
 
                 // Phase 4.2 — SPATIAL AUDIO LAYER: pinna notch + psychoacoustic coloring
                 // Applied after custom tuning, before clamp — per plan §4.2
-                // GATED: Only apply if headphones are connected to avoid distortion on speakers
-                if (isSpatialEnabled && isHeadphonesConnected && spatialLevel > 0 && bandFreq > 0) {
+                // GATED: Only apply if headphones are connected AND core effects are operational.
+                // If Dolby Atmos or OEM effects block Virtualizer/Reverb, skip pinna shaping
+                // to avoid artifacts from notch cuts without compensating widening/reverb.
+                if (isSpatialEnabled && isHeadphonesConnected && spatialLevel > 0 && bandFreq > 0
+                    && spatialEngine.effectsOperational) {
                     val profile = SpatialProfileLibrary.getProfile(spatialLevel)
                     targetLevel = spatialEngine.applyPsychoacousticDelta(
                         bandFreq, targetLevel, profile, minLevel, maxLevel
@@ -263,12 +267,12 @@ class EqEngine {
                 spatialEngine.setReverb(false, null)
             }
 
-            // Layer D: Volume Compensation (LoudnessEnhancer)
-            spatialEngine.setLoudnessBoost(true, profile.loudnessBoostmB)
+            // Layer D: Dynamics Compensation (Compressor + Limiter)
+            spatialEngine.setDynamicsProcessing(true, profile)
         } else {
             spatialEngine.setVirtualizer(false, 0)
             spatialEngine.setReverb(false, null)
-            spatialEngine.setLoudnessBoost(false, 0)
+            spatialEngine.setDynamicsProcessing(false, null)
         }
 
         eq.enabled = true

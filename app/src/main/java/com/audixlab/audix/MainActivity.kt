@@ -199,9 +199,18 @@ fun EqControls(
         label = "spiralAlpha"
     )
 
-    var isEqExpanded by remember { mutableStateOf(isAutoEqEnabled) }
-    var isSpatialExpanded by remember { mutableStateOf(isSpatialEnabled) }
-    var isCustomExpanded by remember { mutableStateOf(isCustomTuningEnabled) }
+    // Card expand states — persisted in DataStore to avoid closing animation on cold launch
+    val eqExpandedPref by userPreferencesRepository.eqCardExpandedFlow.collectAsState(initial = false)
+    var isEqExpanded by remember { mutableStateOf(false) }
+    LaunchedEffect(eqExpandedPref) { isEqExpanded = eqExpandedPref }
+
+    val spatialExpandedPref by userPreferencesRepository.spatialCardExpandedFlow.collectAsState(initial = false)
+    var isSpatialExpanded by remember { mutableStateOf(false) }
+    LaunchedEffect(spatialExpandedPref) { isSpatialExpanded = spatialExpandedPref }
+
+    val customExpandedPref by userPreferencesRepository.customCardExpandedFlow.collectAsState(initial = false)
+    var isCustomExpanded by remember { mutableStateOf(false) }
+    LaunchedEffect(customExpandedPref) { isCustomExpanded = customExpandedPref }
 
     val onboardingShown by userPreferencesRepository.onboardingShownFlow.collectAsState(initial = true)
     var showOnboarding by remember { mutableStateOf(false) }
@@ -585,7 +594,10 @@ fun EqControls(
                         coroutineScope.launch { userPreferencesRepository.saveEqIntensity(eqIntensityPosition) }
                     },
                     isExpanded = isEqExpanded,
-                    onExpandedChange = { isEqExpanded = it },
+                    onExpandedChange = { expanded ->
+                        isEqExpanded = expanded
+                        coroutineScope.launch { userPreferencesRepository.saveEqCardExpanded(expanded) }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -632,7 +644,10 @@ fun EqControls(
                         coroutineScope.launch { userPreferencesRepository.saveCustomTreble(customTreblePosition) }
                     },
                     isExpanded = isCustomExpanded,
-                    onExpandedChange = { isCustomExpanded = it },
+                    onExpandedChange = { expanded ->
+                        isCustomExpanded = expanded
+                        coroutineScope.launch { userPreferencesRepository.saveCustomCardExpanded(expanded) }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -675,7 +690,10 @@ fun EqControls(
                         }
                     },
                     isExpanded = isSpatialExpanded,
-                    onExpandedChange = { isSpatialExpanded = it },
+                    onExpandedChange = { expanded ->
+                        isSpatialExpanded = expanded
+                        coroutineScope.launch { userPreferencesRepository.saveSpatialCardExpanded(expanded) }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -739,8 +757,12 @@ fun EqControls(
                                     isEqExpanded = false
                                     isSpatialExpanded = false
                                     isCustomExpanded = false
-                                }
-                                
+                                    coroutineScope.launch {
+                                        userPreferencesRepository.saveEqCardExpanded(false)
+                                        userPreferencesRepository.saveCustomCardExpanded(false)
+                                        userPreferencesRepository.saveSpatialCardExpanded(false)
+                                    }
+                                }                                
                                 coroutineScope.launch {
                                     userPreferencesRepository.saveMasterEnabled(newState)
                                 }

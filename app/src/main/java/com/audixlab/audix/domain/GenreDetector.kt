@@ -1,4 +1,4 @@
-﻿package com.audixlab.audix.domain
+package com.audixlab.audix.domain
 
 import android.util.Log
 import com.audixlab.audix.BuildConfig
@@ -52,10 +52,12 @@ class GenreDetector(private val songCacheDao: SongCacheDao) {
         }
 
         val prompt = """
-            Classify the song into ONE genre from:
-            Rock,Pop,Hip-Hop,Classical,Jazz,Electronic (EDM),Metal,R&B,Lo-fi.
-            Use the closest match based on title and artist.
-            Return only the genre.
+            Classify the song into exactly ONE genre from this list:
+            Phonk, Folk, Retro 90s, Jazz, Blues, Rock, Soul, R&B,
+            Acoustic, Modern Classical, Classical, Instrumental, Pop, Hip-Hop,
+            EDM, Metal, Lo-fi.
+            Use the closest match based on the song title and artist.
+            Return ONLY the genre name, nothing else.
 
 Title:$title
 Artist:$artist
