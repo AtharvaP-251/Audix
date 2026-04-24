@@ -17,6 +17,31 @@ Audix is a premium, set-and-forget audio enhancement tool that automatically ada
 
 ---
 
+## 📸 Visual Experience
+
+<div align="center">
+  <img src="./assets/screenshots/Audix Engine On.jpg" width="30%" />
+  <img src="./assets/screenshots/Spatial Audio 1.jpg" width="30%" />
+  <img src="./assets/screenshots/Custom Tuning.jpg" width="30%" />
+</div>
+
+<p align="center">
+  <i>Main Interface • Spatial Audio • Custom Tuning</i>
+</p>
+
+| Features | Detail Views |
+| :---: | :---: |
+| ![Spatial Audio 2](./assets/screenshots/Spatial%20Audio%202.jpg) | ![AutoEQ Slider](./assets/screenshots/AutoEQ%20Slider.jpg) |
+| *Immersive Audio* | *AI Genre Control* |
+
+| Configuration | Information | Status States |
+| :---: | :---: | :---: |
+| ![Settings](./assets/screenshots/Settings.jpg) | ![Info](./assets/screenshots/Info.jpg) | ![Engine Off](./assets/screenshots/Audix%20Engine%20off.jpg) |
+| ![API Key](./assets/screenshots/API%20Key.jpg) | ![About](./assets/screenshots/About.jpg) | ![No Song Detected](./assets/screenshots/No%20Song%20detected.jpg) |
+| *App Settings* | *Help & Support* | *Engine States* |
+
+---
+
 ## 🚀 Getting Started
 
 1. **Install & Permissions**: Audix requires **Notification Access** to identify songs and **Battery Optimization Exemption** to run reliably in the background.
