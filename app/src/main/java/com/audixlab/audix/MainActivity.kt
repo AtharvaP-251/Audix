@@ -181,9 +181,28 @@ fun EqControls(
     val geminiApiKey by userPreferencesRepository.geminiApiKeyFlow.collectAsState(initial = null)
     var tempGeminiApiKey by remember(geminiApiKey) { mutableStateOf(geminiApiKey ?: "") }
 
-    val masterEnabledFlowValue by userPreferencesRepository.masterEnabledFlow.collectAsState(initial = true)
-    var masterEnabled by remember { mutableStateOf(masterEnabledFlowValue) }
-    LaunchedEffect(masterEnabledFlowValue) { masterEnabled = masterEnabledFlowValue }
+    val masterEnabledFlowValue by userPreferencesRepository.masterEnabledFlow.collectAsState(initial = null)
+    
+    // Card expand states — persisted in DataStore to avoid closing animation on cold launch
+    val eqExpandedPref by userPreferencesRepository.eqCardExpandedFlow.collectAsState(initial = null)
+    val spatialExpandedPref by userPreferencesRepository.spatialCardExpandedFlow.collectAsState(initial = null)
+    val customExpandedPref by userPreferencesRepository.customCardExpandedFlow.collectAsState(initial = null)
+
+    if (masterEnabledFlowValue == null || eqExpandedPref == null || spatialExpandedPref == null || customExpandedPref == null) {
+        return
+    }
+
+    var masterEnabled by remember { mutableStateOf(masterEnabledFlowValue!!) }
+    LaunchedEffect(masterEnabledFlowValue) { if (masterEnabledFlowValue != null) masterEnabled = masterEnabledFlowValue!! }
+
+    var isEqExpanded by remember { mutableStateOf(eqExpandedPref!!) }
+    LaunchedEffect(eqExpandedPref) { if (eqExpandedPref != null) isEqExpanded = eqExpandedPref!! }
+
+    var isSpatialExpanded by remember { mutableStateOf(spatialExpandedPref!!) }
+    LaunchedEffect(spatialExpandedPref) { if (spatialExpandedPref != null) isSpatialExpanded = spatialExpandedPref!! }
+
+    var isCustomExpanded by remember { mutableStateOf(customExpandedPref!!) }
+    LaunchedEffect(customExpandedPref) { if (customExpandedPref != null) isCustomExpanded = customExpandedPref!! }
 
     val canEnableService by remember(isPermissionGranted, isIgnoringBatteryOptimizations) {
         derivedStateOf { isPermissionGranted && isIgnoringBatteryOptimizations }
@@ -199,18 +218,7 @@ fun EqControls(
         label = "spiralAlpha"
     )
 
-    // Card expand states — persisted in DataStore to avoid closing animation on cold launch
-    val eqExpandedPref by userPreferencesRepository.eqCardExpandedFlow.collectAsState(initial = false)
-    var isEqExpanded by remember { mutableStateOf(false) }
-    LaunchedEffect(eqExpandedPref) { isEqExpanded = eqExpandedPref }
 
-    val spatialExpandedPref by userPreferencesRepository.spatialCardExpandedFlow.collectAsState(initial = false)
-    var isSpatialExpanded by remember { mutableStateOf(false) }
-    LaunchedEffect(spatialExpandedPref) { isSpatialExpanded = spatialExpandedPref }
-
-    val customExpandedPref by userPreferencesRepository.customCardExpandedFlow.collectAsState(initial = false)
-    var isCustomExpanded by remember { mutableStateOf(false) }
-    LaunchedEffect(customExpandedPref) { isCustomExpanded = customExpandedPref }
 
     val onboardingShown by userPreferencesRepository.onboardingShownFlow.collectAsState(initial = true)
     var showOnboarding by remember { mutableStateOf(false) }

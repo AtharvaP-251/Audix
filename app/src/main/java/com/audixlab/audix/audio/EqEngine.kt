@@ -68,6 +68,8 @@ class EqEngine {
 
     fun initialize() {
         createEqualizer()
+        // Phase 4.4 — initialise spatial engine alongside equalizer
+        spatialEngine.initialize()
     }
 
     /**
@@ -78,7 +80,14 @@ class EqEngine {
     fun reinitialize() {
         Log.d("EqEngine", "Reinitializing equalizer...")
         val wasEnabled = isEnabled
-        releaseInternal()
+        try {
+            equalizer?.release()
+        } catch (e: Exception) {
+            Log.w("EqEngine", "Error releasing equalizer: ${e.message}")
+        }
+        equalizer = null
+        isEnabled = false
+
         createEqualizer()
         // Reapply preset if we were enabled before
         if (wasEnabled && lastAppliedPreset != null) {
@@ -110,9 +119,6 @@ class EqEngine {
                 equalizer = null
             }
         }
-
-        // Phase 4.4 — initialise spatial engine alongside equalizer
-        spatialEngine.initialize()
     }
 
     /**
@@ -145,7 +151,9 @@ class EqEngine {
             Log.w("EqEngine", "Error applying EQ preset, attempting reinitialize and retry: ${e.message}")
             // Reinitialize and retry once — critical for Motorola and similar OEMs
             try {
-                releaseInternal()
+                try { equalizer?.release() } catch (e: Exception) {}
+                equalizer = null
+                isEnabled = false
                 createEqualizer()
                 val freshEq = equalizer
                 if (freshEq != null) {
@@ -287,6 +295,13 @@ class EqEngine {
         } catch (e: Exception) {
             Log.w("EqEngine", "Error setting equalizer enabled state: ${e.message}")
         }
+        
+        if (!enabled) {
+            spatialEngine.setVirtualizer(false, 0)
+            spatialEngine.setReverb(false, null)
+            spatialEngine.setDynamicsProcessing(false, null)
+        }
+        
         Log.d("EqEngine", "EQ ${if (enabled) "enabled" else "disabled"}")
     }
 
@@ -298,12 +313,12 @@ class EqEngine {
         }
         equalizer = null
         isEnabled = false
-        // Phase 4.4 — release spatial engine alongside equalizer
-        spatialEngine.release()
     }
 
     fun release() {
         releaseInternal()
+        // Phase 4.4 — release spatial engine alongside equalizer
+        spatialEngine.release()
         Log.d("EqEngine", "Equalizer released")
     }
 }

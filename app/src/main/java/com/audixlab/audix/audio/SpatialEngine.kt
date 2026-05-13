@@ -27,6 +27,10 @@ class SpatialEngine {
 
     // ── Effect state ────────────────────────────────────────────────────────
 
+    private var lastDpProfileLevel: Int = -1
+    private var lastVirtualizerStrength: Short = -1
+    private var lastReverbProfileLevel: Int = -1
+
     private var reverb: EnvironmentalReverb? = null
     private var virtualizer: Virtualizer? = null
     private var dynamics: DynamicsProcessing? = null
@@ -50,6 +54,9 @@ class SpatialEngine {
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     fun initialize() {
+        lastDpProfileLevel = -1
+        lastVirtualizerStrength = -1
+        lastReverbProfileLevel = -1
         tryInitReverb()
         tryInitVirtualizer()
         tryInitDynamicsProcessing(0) // Default to global session 0 if not provided
@@ -85,16 +92,18 @@ class SpatialEngine {
 
     private fun tryInitDynamicsProcessing(audioSessionId: Int) {
         try {
+            // Android's DynamicsProcessing MBC is notoriously buggy and causes stream muting on seeks/flushes.
+            // We only enable the Limiter stage, which is stable and provides the necessary headroom control.
             val builder = DynamicsProcessing.Config.Builder(
-                DynamicsProcessing.VARIANT_FAVOR_FREQUENCY_RESOLUTION,
-                2, false, 0, true, 1, false, 0, true
+                DynamicsProcessing.VARIANT_FAVOR_TIME_RESOLUTION,
+                2, false, 0, false, 0, false, 0, true // Only Limiter enabled
             )
             val config = builder.build()
             val dp = DynamicsProcessing(0, audioSessionId, config)
             dp.enabled = false
             dynamics = dp
             dynamicsSupported = true
-            Log.d(TAG, "DynamicsProcessing initialised")
+            Log.d(TAG, "DynamicsProcessing initialised (Limiter Only)")
         } catch (e: Throwable) {
             dynamicsSupported = false
             dynamics = null
@@ -153,14 +162,21 @@ class SpatialEngine {
 
         try {
             if (enabled && strength > 0) {
-                if (v.strengthSupported) {
-                    v.setStrength(strength)
+                if (lastVirtualizerStrength != strength) {
+                    if (v.strengthSupported) {
+                        v.setStrength(strength)
+                    }
+                    lastVirtualizerStrength = strength
                 }
-                v.enabled = true
-                Log.d(TAG, "Virtualizer ON (strength=$strength)")
+                if (!v.enabled) {
+                    v.enabled = true
+                    Log.d(TAG, "Virtualizer ON (strength=$strength)")
+                }
             } else {
-                v.enabled = false
-                Log.d(TAG, "Virtualizer OFF")
+                if (v.enabled) {
+                    v.enabled = false
+                    Log.d(TAG, "Virtualizer OFF")
+                }
             }
         } catch (e: Throwable) {
             Log.w(TAG, "Virtualizer error: ${e.message}")
@@ -175,19 +191,26 @@ class SpatialEngine {
 
         try {
             if (enabled && profile.reverbRt60Ms > 0) {
-                r.decayTime = profile.reverbRt60Ms
-                r.reflectionsDelay = profile.reverbPreDelayMs
-                r.diffusion = profile.reverbDiffusion
+                if (lastReverbProfileLevel != profile.level) {
+                    r.decayTime = profile.reverbRt60Ms
+                    r.reflectionsDelay = profile.reverbPreDelayMs
+                    r.diffusion = profile.reverbDiffusion
+                    
+                    val wetLevel = (Math.log10(profile.reverbWetDry.toDouble().coerceIn(0.01, 1.0)) * 2000).toInt()
+                    r.reverbLevel = wetLevel.toShort()
+                    r.reflectionsLevel = (wetLevel - 500).toShort()
+                    lastReverbProfileLevel = profile.level
+                }
                 
-                val wetLevel = (Math.log10(profile.reverbWetDry.toDouble().coerceIn(0.01, 1.0)) * 2000).toInt()
-                r.reverbLevel = wetLevel.toShort()
-                r.reflectionsLevel = (wetLevel - 500).toShort()
-                
-                r.enabled = true
-                Log.d(TAG, "Reverb ON (decay=${r.decayTime}ms, preDelay=${r.reflectionsDelay}ms)")
+                if (!r.enabled) {
+                    r.enabled = true
+                    Log.d(TAG, "Reverb ON (decay=${r.decayTime}ms, preDelay=${r.reflectionsDelay}ms)")
+                }
             } else {
-                r.enabled = false
-                Log.d(TAG, "Reverb OFF")
+                if (r.enabled) {
+                    r.enabled = false
+                    Log.d(TAG, "Reverb OFF")
+                }
             }
         } catch (e: Throwable) {
             Log.w(TAG, "Reverb error: ${e.message}")
@@ -202,28 +225,25 @@ class SpatialEngine {
 
         try {
             if (enabled && profile.level > 0) {
-                // Multi-Band Compressor
-                val mbc = DynamicsProcessing.Mbc(true, true, 1)
-                val mbcBand = DynamicsProcessing.MbcBand(
-                    true, 20000f, profile.compressorAttackMs, profile.compressorReleaseMs,
-                    profile.compressorRatio, profile.compressorThresholdDb,
-                    0f, -90f, 1f, 0f, 0f
-                )
-                mbc.setBand(0, mbcBand)
-                dp.setMbcAllChannelsTo(mbc)
-
-                // Limiter Hard Ceiling
-                val limiter = DynamicsProcessing.Limiter(
-                    true, true, 0, profile.compressorAttackMs, profile.compressorReleaseMs,
-                    profile.compressorRatio, profile.limiterThresholdDb, 0f
-                )
-                dp.setLimiterAllChannelsTo(limiter)
+                if (lastDpProfileLevel != profile.level) {
+                    // Limiter Hard Ceiling
+                    val limiter = DynamicsProcessing.Limiter(
+                        true, true, 0, profile.compressorAttackMs, profile.compressorReleaseMs,
+                        profile.compressorRatio, profile.limiterThresholdDb, 0f
+                    )
+                    dp.setLimiterAllChannelsTo(limiter)
+                    lastDpProfileLevel = profile.level
+                }
                 
-                dp.enabled = true
-                Log.d(TAG, "DynamicsProcessing ON (Limiter Thr=${profile.limiterThresholdDb}dB)")
+                if (!dp.enabled) {
+                    dp.enabled = true
+                    Log.d(TAG, "DynamicsProcessing ON (Limiter Thr=${profile.limiterThresholdDb}dB)")
+                }
             } else {
-                dp.enabled = false
-                Log.d(TAG, "DynamicsProcessing OFF")
+                if (dp.enabled) {
+                    dp.enabled = false
+                    Log.d(TAG, "DynamicsProcessing OFF")
+                }
             }
         } catch (e: Throwable) {
             Log.w(TAG, "DynamicsProcessing error: ${e.message}")
