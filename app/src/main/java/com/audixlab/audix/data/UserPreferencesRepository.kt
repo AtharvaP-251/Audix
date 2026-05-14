@@ -66,13 +66,13 @@ class UserPreferencesRepository(private val context: Context) {
         .map { preferences -> preferences[MASTER_ENABLED] ?: true }
 
     val eqCardExpandedFlow: Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[EQ_CARD_EXPANDED] ?: true }
+        .map { preferences -> preferences[EQ_CARD_EXPANDED] ?: false }
 
     val customCardExpandedFlow: Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[CUSTOM_CARD_EXPANDED] ?: true }
+        .map { preferences -> preferences[CUSTOM_CARD_EXPANDED] ?: false }
 
     val spatialCardExpandedFlow: Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[SPATIAL_CARD_EXPANDED] ?: true }
+        .map { preferences -> preferences[SPATIAL_CARD_EXPANDED] ?: false }
 
     suspend fun saveEqIntensity(intensity: Float) {
         context.dataStore.edit { preferences -> preferences[EQ_INTENSITY] = intensity }
