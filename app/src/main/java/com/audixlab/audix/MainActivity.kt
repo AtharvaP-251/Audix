@@ -146,6 +146,30 @@ fun EqControls(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    LaunchedEffect(isIgnoringBatteryOptimizations) {
+        if (!isIgnoringBatteryOptimizations) {
+            while (true) {
+                kotlinx.coroutines.delay(500)
+                if (powerManager.isIgnoringBatteryOptimizations(context.packageName)) {
+                    isIgnoringBatteryOptimizations = true
+                    break
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(isPermissionGranted) {
+        if (!isPermissionGranted) {
+            while (true) {
+                kotlinx.coroutines.delay(500)
+                if (NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)) {
+                    isPermissionGranted = true
+                    break
+                }
+            }
+        }
+    }
+
     val currentSong by SongState.currentSong.collectAsState()
     val isPlaying by SongState.isPlaying.collectAsState()
     val isServiceConnected by SongState.isServiceConnected.collectAsState()
